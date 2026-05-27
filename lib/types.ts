@@ -11,6 +11,7 @@ export interface User {
   prefOccasion: string
   prefSeason: string
   prefMood: string
+  onboardingCompleted: boolean
 }
 
 export interface ClothingItem {

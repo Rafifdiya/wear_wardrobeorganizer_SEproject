@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Shirt, Sparkles, Sun, Wand2, Plus } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { catIcon } from '@/lib/colors'
 import AddClothingModal from '@/components/wardrobe/add-clothing-modal'
+import OnboardingTour from '@/components/onboarding/OnboardingTour'
 
 const TIPS = [
   "In Jakarta's tropical climate, breathable fabrics like linen and cotton are always smart.",
@@ -27,7 +28,7 @@ const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { st
 const fadeUp = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } }
 
 export default function DashboardPage() {
-  const { state } = useWear()
+  const { state, completeOnboarding } = useWear()
   const router = useRouter()
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -50,6 +51,12 @@ export default function DashboardPage() {
 
   return (
     <>
+      <AnimatePresence>
+        {state.user && !state.user.onboardingCompleted && (
+          <OnboardingTour onComplete={completeOnboarding} />
+        )}
+      </AnimatePresence>
+
       <motion.div variants={container} initial="hidden" animate="show">
         {/* Header */}
         <motion.div variants={fadeUp} className="flex items-start justify-between mb-9">

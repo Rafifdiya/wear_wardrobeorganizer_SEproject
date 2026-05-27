@@ -92,6 +92,7 @@ interface WearContextValue {
   incCounts: (mode: 'ai' | 'offline') => void
   updateUser: (data: { firstName?: string; lastName?: string; email?: string; username?: string; bio?: string; prefOccasion?: string; prefSeason?: string; prefMood?: string }) => Promise<void>
   deleteAccount: () => Promise<void>
+  completeOnboarding: () => Promise<void>
   uploadAvatar: (file: File) => Promise<void>
   uploadClothingImage: (file: File) => Promise<string>
   isReady: boolean
@@ -222,6 +223,11 @@ export function WearProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'UPDATE_USER', user })
   }, [])
 
+  const completeOnboarding = useCallback(async () => {
+    await apiFetch('/api/onboarding', { method: 'PATCH' })
+    if (state.user) dispatch({ type: 'UPDATE_USER', user: { ...state.user, onboardingCompleted: true } })
+  }, [state.user])
+
   const deleteAccount = useCallback(async () => {
     await apiFetch('/api/profile', { method: 'DELETE' })
     dispatch({ type: 'LOGOUT' })
@@ -246,7 +252,7 @@ export function WearProvider({ children }: { children: ReactNode }) {
       state, login, register, logout,
       addCloth, deleteCloth, updateCloth,
       addOutfit, deleteOutfit, incCounts,
-      updateUser, deleteAccount, uploadAvatar, uploadClothingImage,
+      updateUser, deleteAccount, completeOnboarding, uploadAvatar, uploadClothingImage,
       isReady,
     }}>
       {children}

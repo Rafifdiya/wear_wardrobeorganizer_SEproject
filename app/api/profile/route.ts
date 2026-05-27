@@ -22,6 +22,7 @@ export async function GET() {
       prefOccasion: user.pref_occasion ?? "casual",
       prefSeason: user.pref_season ?? "all",
       prefMood: user.pref_mood ?? "balanced",
+      onboardingCompleted: user.onboarding_completed ?? false,
     },
   });
 }
@@ -65,6 +66,7 @@ export async function PATCH(req: NextRequest) {
         prefOccasion: updated.pref_occasion ?? "casual",
         prefSeason: updated.pref_season ?? "all",
         prefMood: updated.pref_mood ?? "balanced",
+        onboardingCompleted: updated.onboarding_completed ?? false,
       },
     });
   } catch (e) {

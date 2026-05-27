@@ -5,6 +5,7 @@ import {
   varchar,
   timestamp,
   integer,
+  boolean,
   pgEnum,
 } from "drizzle-orm/pg-core";
 
@@ -50,6 +51,7 @@ export const users = pgTable("users", {
   prefOccasion: varchar("pref_occasion", { length: 50 }).default("casual"),
   prefSeason: varchar("pref_season", { length: 50 }).default("all"),
   prefMood: varchar("pref_mood", { length: 50 }).default("balanced"),
+  onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
