@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Wifi, WifiOff, RotateCcw, Bookmark, Wand2, Loader2 } from 'lucide-react'
 import { useWear } from '@/lib/store'
@@ -51,7 +51,20 @@ export default function GeneratorPage() {
 
   const [mode, setMode] = useState<GeneratorMode>('ai')
   const [opts, setOpts] = useState<GenOptions>({ occ: 'casual', season: 'all', palette: 'harmony', mood: 'balanced' })
+  const [optsInit, setOptsInit] = useState(false)
   const [vibe, setVibe] = useState('')
+
+  useEffect(() => {
+    if (state.user && !optsInit) {
+      setOpts(prev => ({
+        ...prev,
+        occ: (state.user!.prefOccasion as Occasion) || 'casual',
+        season: (state.user!.prefSeason as Season) || 'all',
+        mood: (state.user!.prefMood as StyleMood) || 'balanced',
+      }))
+      setOptsInit(true)
+    }
+  }, [state.user, optsInit])
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<OutfitResult | null>(null)
   const [savedId, setSavedId] = useState<number | null>(null)

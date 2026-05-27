@@ -90,7 +90,8 @@ interface WearContextValue {
   addOutfit: (outfit: Omit<Outfit, 'id' | 'savedAt'>) => Promise<Outfit>
   deleteOutfit: (id: number) => Promise<void>
   incCounts: (mode: 'ai' | 'offline') => void
-  updateUser: (data: { firstName?: string; lastName?: string; email?: string; username?: string; bio?: string }) => Promise<void>
+  updateUser: (data: { firstName?: string; lastName?: string; email?: string; username?: string; bio?: string; prefOccasion?: string; prefSeason?: string; prefMood?: string }) => Promise<void>
+  deleteAccount: () => Promise<void>
   uploadAvatar: (file: File) => Promise<void>
   uploadClothingImage: (file: File) => Promise<string>
   isReady: boolean
@@ -212,13 +213,18 @@ export function WearProvider({ children }: { children: ReactNode }) {
     }).catch(() => {})
   }, [])
 
-  const updateUser = useCallback(async (data: { firstName?: string; lastName?: string; email?: string; username?: string; bio?: string }) => {
+  const updateUser = useCallback(async (data: { firstName?: string; lastName?: string; email?: string; username?: string; bio?: string; prefOccasion?: string; prefSeason?: string; prefMood?: string }) => {
     const { user } = await apiFetch('/api/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
     dispatch({ type: 'UPDATE_USER', user })
+  }, [])
+
+  const deleteAccount = useCallback(async () => {
+    await apiFetch('/api/profile', { method: 'DELETE' })
+    dispatch({ type: 'LOGOUT' })
   }, [])
 
   const uploadAvatar = useCallback(async (file: File) => {
@@ -240,7 +246,7 @@ export function WearProvider({ children }: { children: ReactNode }) {
       state, login, register, logout,
       addCloth, deleteCloth, updateCloth,
       addOutfit, deleteOutfit, incCounts,
-      updateUser, uploadAvatar, uploadClothingImage,
+      updateUser, deleteAccount, uploadAvatar, uploadClothingImage,
       isReady,
     }}>
       {children}

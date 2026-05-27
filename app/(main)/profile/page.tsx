@@ -2,13 +2,28 @@
 
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Camera, LogOut, Save, X, Eye, EyeOff } from 'lucide-react'
+import { Camera, LogOut, Save, X, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
 import { useRouter } from 'next/navigation'
+import { Occasion, Season, StyleMood } from '@/lib/types'
+
+const PREF_OCCASIONS: { value: Occasion; label: string }[] = [
+  { value: 'casual', label: 'Casual' }, { value: 'work', label: 'Work' },
+  { value: 'date', label: 'Date Night' }, { value: 'formal', label: 'Formal' },
+  { value: 'gym', label: 'Gym' }, { value: 'travel', label: 'Travel' },
+]
+const PREF_SEASONS: { value: Season; label: string }[] = [
+  { value: 'all', label: 'All Year' }, { value: 'spring', label: 'Spring' },
+  { value: 'summer', label: 'Summer' }, { value: 'fall', label: 'Fall' }, { value: 'winter', label: 'Winter' },
+]
+const PREF_MOODS: { value: StyleMood; label: string }[] = [
+  { value: 'balanced', label: 'Balanced' }, { value: 'minimal', label: 'Minimal' },
+  { value: 'bold', label: 'Bold' }, { value: 'classic', label: 'Classic' },
+]
 
 export default function ProfilePage() {
-  const { state, updateUser, uploadAvatar, logout } = useWear()
+  const { state, updateUser, deleteAccount, uploadAvatar, logout } = useWear()
   const { showToast } = useToast()
   const router = useRouter()
   const avatarRef = useRef<HTMLInputElement>(null)
@@ -24,8 +39,16 @@ export default function ProfilePage() {
   const [currentPw, setCurrentPw] = useState('')
   const [newPw, setNewPw] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
+  const [showCurrentPw, setShowCurrentPw] = useState(false)
   const [showNewPw, setShowNewPw] = useState(false)
   const [showConfirmPw, setShowConfirmPw] = useState(false)
+
+  const [prefOccasion, setPrefOccasion] = useState<Occasion>((user.prefOccasion as Occasion) ?? 'casual')
+  const [prefSeason, setPrefSeason] = useState<Season>((user.prefSeason as Season) ?? 'all')
+  const [prefMood, setPrefMood] = useState<StyleMood>((user.prefMood as StyleMood) ?? 'balanced')
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
   async function handleSaveProfile() {
     if (!firstName.trim()) { showToast('First name required.', 'error'); return }
@@ -74,6 +97,27 @@ export default function ProfilePage() {
       showToast('Photo updated!')
     } catch {
       showToast('Failed to upload photo.', 'error')
+    }
+  }
+
+  async function handleSavePrefs() {
+    try {
+      await updateUser({ prefOccasion, prefSeason, prefMood })
+      showToast('Style preferences saved!')
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Failed to save preferences.', 'error')
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeletingAccount(true)
+    try {
+      await deleteAccount()
+      router.replace('/')
+    } catch {
+      showToast('Failed to delete account.', 'error')
+      setDeletingAccount(false)
+      setShowDeleteConfirm(false)
     }
   }
 
@@ -171,13 +215,49 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Style Preferences */}
+          <div className="p-7 border-b" style={{ borderColor: 'var(--wear-border)' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Style Preferences</h2>
+            <p style={{ color: 'var(--wear-muted)', fontSize: 13, marginBottom: 20 }}>Used as defaults when generating outfits.</p>
+            <div className="grid grid-cols-3 gap-4 mb-5">
+              <Field label="Default Occasion">
+                <select value={prefOccasion} onChange={e => setPrefOccasion(e.target.value as Occasion)} style={iStyle}>
+                  {PREF_OCCASIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Default Season">
+                <select value={prefSeason} onChange={e => setPrefSeason(e.target.value as Season)} style={iStyle}>
+                  {PREF_SEASONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Default Mood">
+                <select value={prefMood} onChange={e => setPrefMood(e.target.value as StyleMood)} style={iStyle}>
+                  {PREF_MOODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                </select>
+              </Field>
+            </div>
+            <div className="flex justify-end">
+              <motion.button whileHover={{ y: -1 }} onClick={handleSavePrefs}
+                className="flex items-center gap-1.5 cursor-pointer px-5 py-2.5 rounded-xl text-sm font-medium text-white"
+                style={{ background: 'var(--warm)', border: 'none' }}>
+                <Save size={14} /> Save Preferences
+              </motion.button>
+            </div>
+          </div>
+
           {/* Account / password */}
           <div className="p-7">
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Account</h2>
             <div className="mb-4">
               <Field label="Current Password">
-                <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)}
-                  placeholder="Enter your current password" style={iStyle} />
+                <div className="relative">
+                  <input type={showCurrentPw ? 'text' : 'password'} value={currentPw} onChange={e => setCurrentPw(e.target.value)}
+                    placeholder="Enter your current password" style={{ ...iStyle, paddingRight: 52 }} />
+                  <button type="button" onClick={() => setShowCurrentPw(p => !p)}
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wear-muted)', display: 'flex' }}>
+                    {showCurrentPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -216,6 +296,42 @@ export default function ProfilePage() {
                 style={{ background: 'var(--warm)', border: 'none' }}>
                 <Save size={14} /> Update Password
               </motion.button>
+            </div>
+
+            {/* Delete Account */}
+            <div className="mt-8 pt-6 border-t" style={{ borderColor: 'var(--wear-border)' }}>
+              {!showDeleteConfirm ? (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>Delete Account</div>
+                    <div style={{ fontSize: 12, color: 'var(--wear-muted)', marginTop: 2 }}>Permanently delete your account and all data. This cannot be undone.</div>
+                  </div>
+                  <motion.button whileHover={{ opacity: 0.8 }} onClick={() => setShowDeleteConfirm(true)}
+                    className="flex items-center gap-1.5 cursor-pointer px-4 py-2 rounded-xl text-sm font-medium"
+                    style={{ border: '1.5px solid var(--error)', background: 'transparent', color: 'var(--error)' }}>
+                    <Trash2 size={14} /> Delete Account
+                  </motion.button>
+                </div>
+              ) : (
+                <div className="rounded-2xl p-5" style={{ background: '#fff5f5', border: '1.5px solid var(--error)' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--error)', marginBottom: 6 }}>⚠ Are you sure?</div>
+                  <p style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 16 }}>
+                    This will permanently delete your account, all clothing items, outfits, and uploaded photos. This action <strong>cannot be undone</strong>.
+                  </p>
+                  <div className="flex gap-3 justify-end">
+                    <motion.button whileHover={{ opacity: 0.8 }} onClick={() => setShowDeleteConfirm(false)}
+                      className="cursor-pointer px-4 py-2 rounded-xl text-sm font-medium"
+                      style={{ border: '1.5px solid var(--wear-border)', background: 'transparent', color: 'var(--ink)' }}>
+                      Cancel
+                    </motion.button>
+                    <motion.button whileHover={{ opacity: 0.8 }} onClick={handleDeleteAccount} disabled={deletingAccount}
+                      className="flex items-center gap-1.5 cursor-pointer px-4 py-2 rounded-xl text-sm font-medium text-white"
+                      style={{ background: 'var(--error)', border: 'none', opacity: deletingAccount ? 0.6 : 1 }}>
+                      <Trash2 size={14} /> {deletingAccount ? 'Deleting...' : 'Yes, Delete My Account'}
+                    </motion.button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

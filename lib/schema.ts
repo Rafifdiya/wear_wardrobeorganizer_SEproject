@@ -47,6 +47,9 @@ export const users = pgTable("users", {
   generatedCount: integer("generated_count").default(0).notNull(),
   aiCount: integer("ai_count").default(0).notNull(),
   offlineCount: integer("offline_count").default(0).notNull(),
+  prefOccasion: varchar("pref_occasion", { length: 50 }).default("casual"),
+  prefSeason: varchar("pref_season", { length: 50 }).default("all"),
+  prefMood: varchar("pref_mood", { length: 50 }).default("balanced"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

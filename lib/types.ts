@@ -8,6 +8,9 @@ export interface User {
   generatedCount: number
   aiCount: number
   offlineCount: number
+  prefOccasion: string
+  prefSeason: string
+  prefMood: string
 }
 
 export interface ClothingItem {
