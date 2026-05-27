@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useWear } from '@/lib/store'
-import { LayoutDashboard, Shirt, Sparkles, User, BarChart2 } from 'lucide-react'
+import { LayoutDashboard, Shirt, Sparkles, User, BarChart2, LogOut } from 'lucide-react'
 import { ModalType } from '@/app/(main)/layout'
 
 const mainNav = [
@@ -18,8 +18,13 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onOpenModal, activeModal }: SidebarProps) {
-  const { state } = useWear()
+  const { state, logout } = useWear()
   const router = useRouter()
+
+  async function handleLogout() {
+    await logout()
+    router.replace('/')
+  }
   const pathname = usePathname()
   const user = state.user
   const initials = user?.name?.charAt(0).toUpperCase() ?? '?'
@@ -77,6 +82,19 @@ export default function Sidebar({ onOpenModal, activeModal }: SidebarProps) {
             <div className="text-xs truncate" style={{ color: 'rgba(255,255,255,.35)' }}>{user?.email ?? '—'}</div>
           </div>
         </motion.div>
+
+        <motion.button
+          whileHover={{ background: 'rgba(255,255,255,.08)' }}
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full cursor-pointer rounded-xl text-sm"
+          style={{
+            padding: '10px 12px', marginTop: 4,
+            color: 'rgba(255,255,255,.45)', background: 'transparent', border: 'none',
+          }}
+        >
+          <LogOut size={15} />
+          Log Out
+        </motion.button>
       </div>
     </aside>
   )
