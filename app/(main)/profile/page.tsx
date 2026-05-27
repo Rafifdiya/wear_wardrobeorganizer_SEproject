@@ -132,8 +132,7 @@ export default function ProfilePage() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       {/* Header */}
       <div className="mb-9">
-        <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 700, lineHeight: 1.1 }}>Profile & Settings</h1>
-        <p style={{ color: 'var(--wear-muted)', fontSize: 14, marginTop: 6 }}>Manage your info and preferences.</p>
+        <p style={{ color: 'var(--wear-muted)', fontSize: 14 }}>Manage your info and preferences.</p>
       </div>
 
       <div className="grid gap-7" style={{ gridTemplateColumns: '280px 1fr', alignItems: 'start' }}>

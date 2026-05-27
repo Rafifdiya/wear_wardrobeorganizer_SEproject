@@ -4,16 +4,20 @@ import { useRouter, usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useWear } from '@/lib/store'
 import { LayoutDashboard, Shirt, Sparkles, User, BarChart2 } from 'lucide-react'
+import { ModalType } from '@/app/(main)/layout'
 
-const navItems = [
-  { path: '/dashboard',  Icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/wardrobe',   Icon: Shirt,            label: 'My Wardrobe' },
-  { path: '/generator',  Icon: Sparkles,         label: 'Outfit Generator' },
-  { path: '/profile',    Icon: User,             label: 'Profile' },
-  { path: '/stats',      Icon: BarChart2,        label: 'Style Stats' },
+const mainNav = [
+  { path: '/dashboard', Icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/wardrobe',  Icon: Shirt,            label: 'My Wardrobe' },
+  { path: '/generator', Icon: Sparkles,         label: 'Outfit Generator' },
 ]
 
-export default function Sidebar() {
+interface SidebarProps {
+  onOpenModal: (modal: ModalType) => void
+  activeModal: ModalType
+}
+
+export default function Sidebar({ onOpenModal, activeModal }: SidebarProps) {
   const { state } = useWear()
   const router = useRouter()
   const pathname = usePathname()
@@ -32,21 +36,35 @@ export default function Sidebar() {
       <div style={{ padding: '24px 16px 8px', fontSize: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '1.2px', color: 'rgba(255,255,255,.3)' }}>
         Main
       </div>
-      {navItems.slice(0, 3).map(item => (
-        <NavItem key={item.path} item={item} active={pathname === item.path} onClick={() => router.push(item.path)} />
+      {mainNav.map(item => (
+        <NavItem
+          key={item.path}
+          item={item}
+          active={pathname === item.path && !activeModal}
+          onClick={() => { router.push(item.path) }}
+        />
       ))}
 
       <div style={{ padding: '24px 16px 8px', fontSize: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '1.2px', color: 'rgba(255,255,255,.3)' }}>
         You
       </div>
-      {navItems.slice(3).map(item => (
-        <NavItem key={item.path} item={item} active={pathname === item.path} onClick={() => router.push(item.path)} />
-      ))}
+      <NavItem
+        item={{ path: '/profile', Icon: User, label: 'Profile' }}
+        active={activeModal === 'profile'}
+        onClick={() => onOpenModal('profile')}
+      />
+      <NavItem
+        item={{ path: '/stats', Icon: BarChart2, label: 'Style Stats' }}
+        active={activeModal === 'stats'}
+        onClick={() => onOpenModal('stats')}
+      />
 
       <div style={{ marginTop: 'auto', padding: 16, borderTop: '1px solid rgba(255,255,255,.08)' }}>
-        <motion.div whileHover={{ background: 'rgba(255,255,255,.05)' }}
-          onClick={() => router.push('/profile')}
-          className="flex items-center gap-3 p-3 rounded-xl cursor-pointer">
+        <motion.div
+          whileHover={{ background: 'rgba(255,255,255,.05)' }}
+          onClick={() => onOpenModal('profile')}
+          className="flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+        >
           <div className="flex items-center justify-center flex-shrink-0 rounded-full overflow-hidden font-bold text-sm"
             style={{ width: 36, height: 36, background: 'var(--warm)', color: 'white' }}>
             {user?.avatar
@@ -65,12 +83,13 @@ export default function Sidebar() {
 }
 
 function NavItem({ item, active, onClick }: {
-  item: { Icon: React.ElementType; label: string }
+  item: { Icon: React.ElementType; label: string; path?: string }
   active: boolean
   onClick: () => void
 }) {
   return (
-    <motion.div whileHover={{ background: active ? undefined : 'rgba(255,255,255,.05)' }}
+    <motion.div
+      whileHover={{ background: active ? undefined : 'rgba(255,255,255,.05)' }}
       onClick={onClick}
       className="flex items-center gap-3 cursor-pointer text-sm"
       style={{
@@ -80,7 +99,8 @@ function NavItem({ item, active, onClick }: {
         borderLeft: active ? '3px solid var(--warm)' : '3px solid transparent',
         margin: '2px 0',
         transition: 'color .2s',
-      }}>
+      }}
+    >
       <item.Icon size={18} />
       {item.label}
     </motion.div>
