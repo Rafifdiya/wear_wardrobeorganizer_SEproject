@@ -80,7 +80,7 @@ export default function AuthCard() {
     if (!isValidEmail(loginEmail)) { showMsg('Enter a valid email address.'); return }
     setLoading(true)
     try {
-      await login(loginEmail, loginPw, rememberMe ? rememberDays : undefined)
+      await login(loginEmail.trim().toLowerCase(), loginPw, rememberMe ? rememberDays : undefined)
       router.replace('/dashboard')
     } catch (e: unknown) {
       showMsg(e instanceof Error ? e.message : 'Login failed.')
@@ -98,7 +98,7 @@ export default function AuthCard() {
     if (signPw !== signConfirm) { showMsg('Passwords do not match.'); return }
     setLoading(true)
     try {
-      await register(signName.trim(), signEmail, signPw)
+      await register(signName.trim(), signEmail.trim().toLowerCase(), signPw)
       router.replace('/dashboard')
     } catch (e: unknown) {
       showMsg(e instanceof Error ? e.message : 'Registration failed.')

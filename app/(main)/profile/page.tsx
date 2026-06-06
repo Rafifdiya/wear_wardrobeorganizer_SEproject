@@ -29,7 +29,7 @@ const fadeUp = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transi
 export default function ProfilePage() {
   const { state, updateUser, deleteAccount, uploadAvatar, logout } = useWear()
   const { showToast } = useToast()
-  const { colorTheme, setColorTheme, fontTheme, setFontTheme } = useTheme()
+  const { colorTheme, setColorTheme, fontTheme, setFontTheme, resetTheme } = useTheme()
   const router = useRouter()
   const avatarRef = useRef<HTMLInputElement>(null)
 
@@ -127,6 +127,7 @@ export default function ProfilePage() {
   }
 
   async function handleLogout() {
+    resetTheme()
     await logout()
     router.replace('/')
   }

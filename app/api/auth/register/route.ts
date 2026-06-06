@@ -5,14 +5,15 @@ import { createSession, setSessionCookie } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email: rawEmail, password } = await req.json();
+    const email = rawEmail?.trim().toLowerCase();
     if (!name || !email || !password)
       return NextResponse.json({ error: "Missing fields." }, { status: 400 });
 
     const supabase = createServerClient();
 
     const { data: existing } = await supabase
-      .from("users").select("id").eq("email", email).maybeSingle();
+      .from("users").select("id").ilike("email", email).maybeSingle();
     if (existing)
       return NextResponse.json({ error: "Email already registered." }, { status: 409 });
 

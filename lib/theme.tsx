@@ -17,6 +17,8 @@ interface ThemeCtx {
   fontTheme: FontTheme
   setColorTheme: (t: ColorTheme) => void
   setFontTheme: (f: FontTheme) => void
+  resetTheme: () => void
+  loadUserTheme: (userId: string) => void
 }
 
 const ThemeContext = createContext<ThemeCtx | null>(null)
@@ -24,7 +26,9 @@ const ThemeContext = createContext<ThemeCtx | null>(null)
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [colorTheme, setColor] = useState<ColorTheme>('light')
   const [fontTheme, setFont] = useState<FontTheme>('classic')
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
+  // Apply active theme from localStorage on first load (matches FOUC script)
   useEffect(() => {
     const c = localStorage.getItem('wear-color') as ColorTheme | null
     const f = localStorage.getItem('wear-font') as FontTheme | null
@@ -42,8 +46,39 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('wear-font', fontTheme)
   }, [fontTheme])
 
+  // Wraps setColor so changes are also saved under the user's own key
+  function setColorTheme(t: ColorTheme) {
+    setColor(t)
+    if (currentUserId) localStorage.setItem(`wear-color-${currentUserId}`, t)
+  }
+
+  function setFontTheme(f: FontTheme) {
+    setFont(f)
+    if (currentUserId) localStorage.setItem(`wear-font-${currentUserId}`, f)
+  }
+
+  // Called after login — restores that user's saved theme
+  function loadUserTheme(userId: string) {
+    setCurrentUserId(userId)
+    const c = localStorage.getItem(`wear-color-${userId}`) as ColorTheme | null
+    const f = localStorage.getItem(`wear-font-${userId}`) as FontTheme | null
+    setColor(c ?? 'light')
+    setFont(f ?? 'classic')
+  }
+
+  // Called on logout — resets to light without deleting the per-user saved keys
+  function resetTheme() {
+    setCurrentUserId(null)
+    localStorage.removeItem('wear-color')
+    localStorage.removeItem('wear-font')
+    document.documentElement.removeAttribute('data-theme')
+    document.documentElement.removeAttribute('data-font')
+    setColor('light')
+    setFont('classic')
+  }
+
   return (
-    <ThemeContext.Provider value={{ colorTheme, fontTheme, setColorTheme: setColor, setFontTheme: setFont }}>
+    <ThemeContext.Provider value={{ colorTheme, fontTheme, setColorTheme, setFontTheme, resetTheme, loadUserTheme }}>
       {children}
     </ThemeContext.Provider>
   )
