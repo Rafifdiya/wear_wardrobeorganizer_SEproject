@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useWear } from '@/lib/store'
+import { useTheme } from '@/lib/theme'
 import Sidebar from '@/components/layout/sidebar'
 import { ToastProvider } from '@/components/shared/toast'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -14,6 +15,7 @@ export type ModalType = 'profile' | 'stats' | null
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { state, isReady } = useWear()
+  const { loadUserTheme } = useTheme()
   const router = useRouter()
   const [activeModal, setActiveModal] = useState<ModalType>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -21,6 +23,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     if (isReady && !state.user) router.replace('/')
   }, [isReady, state.user, router])
+
+  // Restore this account's saved theme whenever the logged-in user changes
+  useEffect(() => {
+    if (state.user?.id) loadUserTheme(String(state.user.id))
+  }, [state.user?.id])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

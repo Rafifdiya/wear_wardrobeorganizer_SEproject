@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWear } from '@/lib/store'
+import { useTheme } from '@/lib/theme'
 import { LayoutDashboard, Shirt, Sparkles, User, BarChart2, LogOut, X } from 'lucide-react'
 import { ModalType } from '@/app/(main)/layout'
 
@@ -22,6 +23,7 @@ interface SidebarProps {
 
 export default function Sidebar({ onOpenModal, activeModal, isOpen, onClose }: SidebarProps) {
   const { state, logout } = useWear()
+  const { resetTheme } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(false)
@@ -34,6 +36,7 @@ export default function Sidebar({ onOpenModal, activeModal, isOpen, onClose }: S
   }, [])
 
   async function handleLogout() {
+    resetTheme()
     await logout()
     router.replace('/')
   }

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServerClient();
     const { data: user } = await supabase
-      .from("users").select("*").eq("email", email).maybeSingle();
+      .from("users").select("*").ilike("email", email).maybeSingle();
 
     if (!user)
       return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
