@@ -46,7 +46,7 @@ const STYLES = [
 
 const selStyle: React.CSSProperties = {
   width: '100%', padding: '12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12,
-  fontFamily: 'var(--font-sans)', fontSize: 14, background: 'white', color: 'var(--ink)',
+  fontFamily: 'var(--font-sans)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--fg)',
   outline: 'none', appearance: 'none',
 }
 
@@ -148,7 +148,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
             exit={{ opacity: 0, scale: 0.96, y: 16 }}
             transition={{ duration: 0.25 }}
             className="hide-scrollbar"
-            style={{ background: 'white', borderRadius: 24, padding: 36, width: 500, maxWidth: '90vw', maxHeight: '85vh', overflowY: 'auto' }}
+            style={{ background: 'var(--card-bg)', borderRadius: 24, padding: 36, width: 500, maxWidth: '90vw', maxHeight: '85vh', overflowY: 'auto' }}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700 }}>
@@ -185,7 +185,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
                 <img src={imagePreview} alt="Preview" className="w-full rounded-xl border" style={{ maxHeight: 280, objectFit: 'contain', borderColor: 'var(--wear-border)' }} />
                 <motion.button whileHover={{ scale: 1.05 }} onClick={() => { setImagePreview(null); setImageFile(null) }}
                   className="absolute top-2 right-2 flex items-center justify-center rounded-full cursor-pointer"
-                  style={{ width: 32, height: 32, background: 'white', border: '1px solid var(--wear-border)', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
+                  style={{ width: 32, height: 32, background: 'var(--card-bg)', border: '1px solid var(--wear-border)', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
                   <X size={14} />
                 </motion.button>
                 <button onClick={() => fileRef.current?.click()}
@@ -201,7 +201,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
             <Field label="Item Name">
               <input type="text" value={name} onChange={e => setName(e.target.value)}
                 placeholder="e.g. White Linen Shirt"
-                style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12, fontFamily: 'var(--font-sans)', fontSize: 14, background: 'white', color: 'var(--ink)', outline: 'none' }} />
+                style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12, fontFamily: 'var(--font-sans)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--fg)', outline: 'none' }} />
             </Field>
 
             <div className="grid grid-cols-2 gap-3">

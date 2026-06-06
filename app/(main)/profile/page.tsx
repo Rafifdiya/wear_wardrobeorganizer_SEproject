@@ -2,11 +2,12 @@
 
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Camera, LogOut, Save, X, Eye, EyeOff, Trash2 } from 'lucide-react'
+import { Camera, LogOut, Save, X, Eye, EyeOff, Trash2, Sun, Moon } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
 import { useRouter } from 'next/navigation'
 import { Occasion, Season, StyleMood } from '@/lib/types'
+import { useTheme, FONT_THEME_OPTIONS } from '@/lib/theme'
 
 const PREF_OCCASIONS: { value: Occasion; label: string }[] = [
   { value: 'casual', label: 'Casual' }, { value: 'work', label: 'Work' },
@@ -22,9 +23,13 @@ const PREF_MOODS: { value: StyleMood; label: string }[] = [
   { value: 'bold', label: 'Bold' }, { value: 'classic', label: 'Classic' },
 ]
 
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } }
+const fadeUp = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } }
+
 export default function ProfilePage() {
   const { state, updateUser, deleteAccount, uploadAvatar, logout } = useWear()
   const { showToast } = useToast()
+  const { colorTheme, setColorTheme, fontTheme, setFontTheme } = useTheme()
   const router = useRouter()
   const avatarRef = useRef<HTMLInputElement>(null)
 
@@ -129,15 +134,16 @@ export default function ProfilePage() {
   const initials = user.name.charAt(0).toUpperCase()
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+    <motion.div variants={container} initial="hidden" animate="show">
       {/* Header */}
-      <div className="mb-9">
+      <motion.div variants={fadeUp} className="mb-9">
         <p style={{ color: 'var(--wear-muted)', fontSize: 14 }}>Manage your info and preferences.</p>
-      </div>
+      </motion.div>
 
-      <div className="grid gap-7" style={{ gridTemplateColumns: '280px 1fr', alignItems: 'start' }}>
+      {/* Responsive layout: sidebar card left, settings right */}
+      <div className="wear-profile-layout">
         {/* Profile card */}
-        <div className="rounded-3xl p-8 border text-center" style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+        <motion.div variants={fadeUp} className="rounded-3xl p-8 border text-center" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
           {/* Avatar */}
           <div className="relative w-24 h-24 mx-auto mb-4">
             <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center font-bold text-4xl text-white cursor-pointer"
@@ -147,7 +153,7 @@ export default function ProfilePage() {
             </div>
             <button onClick={() => avatarRef.current?.click()}
               className="absolute bottom-0 right-0 flex items-center justify-center rounded-full cursor-pointer"
-              style={{ width: 28, height: 28, background: 'var(--ink)', border: '2px solid white' }}>
+              style={{ width: 28, height: 28, background: 'var(--ink)', border: '2px solid var(--card-bg)' }}>
               <Camera size={14} color="white" />
             </button>
           </div>
@@ -181,18 +187,18 @@ export default function ProfilePage() {
               {state.offlineCount} Offline
             </span>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Settings card */}
-        <div className="rounded-3xl border overflow-hidden" style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+        {/* Settings panel */}
+        <div className="rounded-3xl border overflow-hidden" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
           {/* Personal info */}
-          <div className="p-7 border-b" style={{ borderColor: 'var(--wear-border)' }}>
+          <motion.div variants={fadeUp} className="p-7 border-b" style={{ borderColor: 'var(--wear-border)' }}>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Personal Information</h2>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <Field label="First Name"><input value={firstName} onChange={e => setFirstName(e.target.value)} style={iStyle} /></Field>
               <Field label="Last Name"><input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="optional" style={iStyle} /></Field>
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <Field label="Email"><input type="email" value={email} onChange={e => setEmail(e.target.value)} style={iStyle} /></Field>
               <Field label="Username"><input value={username} readOnly style={{ ...iStyle, background: 'var(--cream)', color: 'var(--wear-muted)', cursor: 'not-allowed' }} /></Field>
             </div>
@@ -200,10 +206,10 @@ export default function ProfilePage() {
               <textarea value={bio} onChange={e => setBio(e.target.value)} rows={2}
                 style={{ ...iStyle, resize: 'vertical', minHeight: 60 }} />
             </Field>
-            <div className="flex justify-end gap-3 mt-5">
-              <motion.button whileHover={{ borderColor: 'var(--ink)' }} onClick={handleCancelProfile}
+            <div className="flex justify-end gap-3 mt-5 flex-wrap">
+              <motion.button whileHover={{ borderColor: 'var(--fg)' }} onClick={handleCancelProfile}
                 className="flex items-center gap-1.5 cursor-pointer px-5 py-2.5 rounded-xl text-sm font-medium"
-                style={{ border: '1.5px solid var(--wear-border)', background: 'transparent', color: 'var(--ink)' }}>
+                style={{ border: '1.5px solid var(--wear-border)', background: 'transparent', color: 'var(--fg)' }}>
                 <X size={14} /> Cancel
               </motion.button>
               <motion.button whileHover={{ y: -1 }} onClick={handleSaveProfile}
@@ -212,13 +218,13 @@ export default function ProfilePage() {
                 <Save size={14} /> Save Changes
               </motion.button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Style Preferences */}
-          <div className="p-7 border-b" style={{ borderColor: 'var(--wear-border)' }}>
+          <motion.div variants={fadeUp} className="p-7 border-b" style={{ borderColor: 'var(--wear-border)' }}>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Style Preferences</h2>
             <p style={{ color: 'var(--wear-muted)', fontSize: 13, marginBottom: 20 }}>Used as defaults when generating outfits.</p>
-            <div className="grid grid-cols-3 gap-4 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
               <Field label="Default Occasion">
                 <select value={prefOccasion} onChange={e => setPrefOccasion(e.target.value as Occasion)} style={iStyle}>
                   {PREF_OCCASIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -242,10 +248,57 @@ export default function ProfilePage() {
                 <Save size={14} /> Save Preferences
               </motion.button>
             </div>
-          </div>
+          </motion.div>
+
+          {/* Appearance */}
+          <motion.div variants={fadeUp} className="p-7 border-b" style={{ borderColor: 'var(--wear-border)' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Appearance</h2>
+            <p style={{ color: 'var(--wear-muted)', fontSize: 13, marginBottom: 20 }}>Choose a color mode and font style for the app.</p>
+
+            {/* Color mode toggle */}
+            <div className="mb-6">
+              <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--wear-muted)', textTransform: 'uppercase', letterSpacing: '.8px', marginBottom: 10 }}>Color Mode</div>
+              <div className="flex gap-3">
+                {([
+                  { v: 'light' as const, label: 'Light', Icon: Sun },
+                  { v: 'dark' as const, label: 'Dark', Icon: Moon },
+                ]).map(({ v, label, Icon }) => (
+                  <motion.button key={v} whileTap={{ scale: 0.97 }}
+                    onClick={() => setColorTheme(v)}
+                    className="flex items-center gap-2 cursor-pointer px-5 py-2.5 rounded-xl text-sm font-medium"
+                    style={{
+                      border: `1.5px solid ${colorTheme === v ? 'var(--ink)' : 'var(--wear-border)'}`,
+                      background: colorTheme === v ? 'var(--ink)' : 'transparent',
+                      color: colorTheme === v ? 'white' : 'var(--fg)',
+                    }}>
+                    <Icon size={15} /> {label}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            {/* Font theme grid */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--wear-muted)', textTransform: 'uppercase', letterSpacing: '.8px', marginBottom: 10 }}>Font Style</div>
+              <div className="grid grid-cols-2 gap-3">
+                {FONT_THEME_OPTIONS.map(opt => (
+                  <motion.button key={opt.value} whileTap={{ scale: 0.97 }}
+                    onClick={() => setFontTheme(opt.value)}
+                    className="text-left cursor-pointer px-4 py-3 rounded-xl"
+                    style={{
+                      border: `1.5px solid ${fontTheme === opt.value ? 'var(--warm)' : 'var(--wear-border)'}`,
+                      background: fontTheme === opt.value ? 'rgba(200,149,108,.08)' : 'transparent',
+                    }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: fontTheme === opt.value ? 'var(--warm)' : 'var(--fg)' }}>{opt.label}</div>
+                    <div style={{ fontSize: 11, color: 'var(--wear-muted)', marginTop: 2 }}>{opt.desc}</div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
 
           {/* Account / password */}
-          <div className="p-7">
+          <motion.div variants={fadeUp} className="p-7">
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Account</h2>
             <div className="mb-4">
               <Field label="Current Password">
@@ -259,7 +312,7 @@ export default function ProfilePage() {
                 </div>
               </Field>
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <Field label="New Password">
                 <div className="relative">
                   <input type={showNewPw ? 'text' : 'password'} value={newPw} onChange={e => setNewPw(e.target.value)}
@@ -284,7 +337,7 @@ export default function ProfilePage() {
             {newPw && confirmPw && newPw !== confirmPw && (
               <p style={{ fontSize: 12, color: 'var(--error)', marginBottom: 8 }}>Passwords do not match.</p>
             )}
-            <div className="flex justify-between items-center mt-5">
+            <div className="flex justify-between items-center mt-5 flex-wrap gap-3">
               <motion.button whileHover={{ opacity: 0.8 }} onClick={handleLogout}
                 className="flex items-center gap-1.5 cursor-pointer px-5 py-2.5 rounded-xl text-sm font-medium"
                 style={{ border: '1.5px solid var(--error)', background: 'transparent', color: 'var(--error)' }}>
@@ -300,9 +353,9 @@ export default function ProfilePage() {
             {/* Delete Account */}
             <div className="mt-8 pt-6 border-t" style={{ borderColor: 'var(--wear-border)' }}>
               {!showDeleteConfirm ? (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center flex-wrap gap-3">
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>Delete Account</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--fg)' }}>Delete Account</div>
                     <div style={{ fontSize: 12, color: 'var(--wear-muted)', marginTop: 2 }}>Permanently delete your account and all data. This cannot be undone.</div>
                   </div>
                   <motion.button whileHover={{ opacity: 0.8 }} onClick={() => setShowDeleteConfirm(true)}
@@ -312,15 +365,15 @@ export default function ProfilePage() {
                   </motion.button>
                 </div>
               ) : (
-                <div className="rounded-2xl p-5" style={{ background: '#fff5f5', border: '1.5px solid var(--error)' }}>
+                <div className="rounded-2xl p-5" style={{ background: 'rgba(220,38,38,.08)', border: '1.5px solid var(--error)' }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--error)', marginBottom: 6 }}>⚠ Are you sure?</div>
-                  <p style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 16 }}>
+                  <p style={{ fontSize: 13, color: 'var(--fg)', marginBottom: 16 }}>
                     This will permanently delete your account, all clothing items, outfits, and uploaded photos. This action <strong>cannot be undone</strong>.
                   </p>
-                  <div className="flex gap-3 justify-end">
+                  <div className="flex gap-3 justify-end flex-wrap">
                     <motion.button whileHover={{ opacity: 0.8 }} onClick={() => setShowDeleteConfirm(false)}
                       className="cursor-pointer px-4 py-2 rounded-xl text-sm font-medium"
-                      style={{ border: '1.5px solid var(--wear-border)', background: 'transparent', color: 'var(--ink)' }}>
+                      style={{ border: '1.5px solid var(--wear-border)', background: 'transparent', color: 'var(--fg)' }}>
                       Cancel
                     </motion.button>
                     <motion.button whileHover={{ opacity: 0.8 }} onClick={handleDeleteAccount} disabled={deletingAccount}
@@ -332,7 +385,7 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </motion.div>
@@ -341,7 +394,7 @@ export default function ProfilePage() {
 
 const iStyle: React.CSSProperties = {
   width: '100%', padding: '12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12,
-  fontFamily: 'var(--font-sans)', fontSize: 14, background: 'white', color: 'var(--ink)', outline: 'none',
+  fontFamily: 'var(--font-sans)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--fg)', outline: 'none',
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

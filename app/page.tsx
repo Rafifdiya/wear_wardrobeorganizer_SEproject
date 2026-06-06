@@ -21,7 +21,7 @@ export default function AuthPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center relative overflow-x-hidden py-10"
       style={{ background: 'var(--ink)' }}
     >
       {/* Ambient glows */}

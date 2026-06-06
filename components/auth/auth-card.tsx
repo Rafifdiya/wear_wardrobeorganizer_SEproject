@@ -37,6 +37,12 @@ function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 }
 
+const formAnim = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.16, ease: 'easeIn' } },
+}
+
 export default function AuthCard() {
   const { login, register } = useWear()
   const router = useRouter()
@@ -45,14 +51,14 @@ export default function AuthCard() {
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Login state
+  // Login
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPw, setLoginPw] = useState('')
   const [showLoginPw, setShowLoginPw] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [rememberDays, setRememberDays] = useState(7)
 
-  // Signup state
+  // Signup
   const [signName, setSignName] = useState('')
   const [signEmail, setSignEmail] = useState('')
   const [signPw, setSignPw] = useState('')
@@ -60,7 +66,7 @@ export default function AuthCard() {
   const [showSignPw, setShowSignPw] = useState(false)
   const [showSignConfirm, setShowSignConfirm] = useState(false)
 
-  // Forgot state
+  // Forgot
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotSent, setForgotSent] = useState(false)
 
@@ -113,18 +119,26 @@ export default function AuthCard() {
 
   return (
     <motion.div
+      layout
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="relative z-10 hide-scrollbar"
+      transition={{
+        duration: 0.45,
+        ease: [0.16, 1, 0.3, 1],
+        layout: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+      }}
+      className="relative z-10"
       style={{
-        background: 'var(--surface)', borderRadius: 24, padding: '44px 40px',
-        width: 460, maxWidth: '92vw', boxShadow: '0 40px 80px rgba(0,0,0,.4)',
-        maxHeight: '96vh', overflowY: 'auto',
+        background: 'var(--surface)',
+        borderRadius: 24,
+        padding: '44px 40px',
+        width: 460,
+        maxWidth: '92vw',
+        boxShadow: '0 40px 80px rgba(0,0,0,.4)',
       }}
     >
       {/* Logo */}
-      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 42, fontWeight: 700, color: 'var(--ink)' }}>
+      <div className="wear-auth-logo" style={{ fontFamily: 'var(--font-heading)', fontSize: 42, fontWeight: 700, color: 'var(--fg)' }}>
         WEAR<span style={{ color: 'var(--warm)' }}>.</span>
       </div>
       <div style={{ color: 'var(--wear-muted)', fontSize: 13, marginBottom: 8, marginTop: 4 }}>
@@ -139,21 +153,61 @@ export default function AuthCard() {
           style={{ background: 'var(--offline-light)', color: 'var(--offline)' }}>Offline Mode</span>
       </div>
 
+      {/* Tabs — stable outside AnimatePresence to prevent layout jump */}
+      <AnimatePresence>
+        {!showForgot && (
+          <motion.div
+            key="tabs"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="flex gap-1 p-1 mb-6 w-fit border"
+            style={{ background: 'var(--cream)', borderRadius: 12, borderColor: 'var(--wear-border)' }}
+          >
+            {(['login', 'signup'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="cursor-pointer px-5 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  border: 'none',
+                  background: tab === t ? 'var(--card-bg)' : 'transparent',
+                  color: tab === t ? 'var(--fg)' : 'var(--wear-muted)',
+                  boxShadow: tab === t ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
+                }}
+              >
+                {t === 'login' ? 'Login' : 'Sign Up'}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Form content */}
       <AnimatePresence mode="wait">
         {showForgot ? (
-          <motion.div key="forgot" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, marginBottom: 20 }}>Forgot Password</h2>
+          <motion.div key="forgot" {...formAnim}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, marginBottom: 20, color: 'var(--fg)' }}>
+              Forgot Password
+            </h2>
             {!forgotSent ? (
               <>
                 <p style={{ fontSize: 14, color: 'var(--wear-muted)', marginBottom: 16, lineHeight: 1.6 }}>
                   Enter your email and contact your admin to reset your password.
                 </p>
-                <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={e => setForgotEmail(e.target.value)}
                   placeholder="Email address"
-                  style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12, fontFamily: 'var(--font-sans)', fontSize: 14, marginBottom: 12, outline: 'none' }} />
-                <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
+                  style={{ ...inputStyle, marginBottom: 12 }}
+                />
+                <motion.button
+                  whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
                   onClick={handleForgot}
-                  style={{ width: '100%', padding: '14px', background: 'var(--warm)', color: 'white', border: 'none', borderRadius: 12, fontFamily: 'var(--font-sans)', fontSize: 15, cursor: 'pointer', marginBottom: 12 }}>
+                  style={{ width: '100%', padding: '14px', background: 'var(--warm)', color: 'white', border: 'none', borderRadius: 12, fontFamily: 'var(--font-sans)', fontSize: 15, cursor: 'pointer', marginBottom: 12 }}
+                >
                   Submit
                 </motion.button>
               </>
@@ -162,35 +216,31 @@ export default function AuthCard() {
                 ✓ Request received for <strong>{forgotEmail}</strong>. Contact your admin to reset your password.
               </p>
             )}
-            <button onClick={() => { setShowForgot(false); setForgotSent(false); setForgotEmail('') }}
-              style={{ background: 'none', border: 'none', color: 'var(--warm)', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 14 }}>
+            <button
+              onClick={() => { setShowForgot(false); setForgotSent(false); setForgotEmail('') }}
+              style={{ background: 'none', border: 'none', color: 'var(--warm)', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 14 }}
+            >
               ← Back to login
             </button>
           </motion.div>
-        ) : tab === 'login' ? (
-          <motion.div key="login" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            {/* Tabs */}
-            <div className="flex gap-1 p-1 mb-6 w-fit border" style={{ background: 'var(--cream)', borderRadius: 12, borderColor: 'var(--wear-border)' }}>
-              {(['login', 'signup'] as const).map(t => (
-                <button key={t} onClick={() => setTab(t)}
-                  className="cursor-pointer px-5 py-2 rounded-lg text-sm font-medium transition-all"
-                  style={{ border: 'none', background: tab === t ? 'white' : 'transparent', color: tab === t ? 'var(--ink)' : 'var(--wear-muted)', boxShadow: tab === t ? '0 1px 4px rgba(0,0,0,.08)' : 'none' }}>
-                  {t === 'login' ? 'Login' : 'Sign Up'}
-                </button>
-              ))}
-            </div>
 
+        ) : tab === 'login' ? (
+          <motion.div key="login" {...formAnim}>
             <Field label="Email">
-              <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
+              <input
+                type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
                 placeholder="your@email.com" onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                style={inputStyle} />
+                style={inputStyle}
+              />
             </Field>
             <Field label="Password">
               <div className="relative">
-                <input type={showLoginPw ? 'text' : 'password'} value={loginPw} onChange={e => setLoginPw(e.target.value)}
+                <input
+                  type={showLoginPw ? 'text' : 'password'} value={loginPw} onChange={e => setLoginPw(e.target.value)}
                   placeholder="••••••••" onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                  style={{ ...inputStyle, paddingRight: 44 }} />
-                <button type="button" onClick={() => setShowLoginPw(p => !p)} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wear-muted)', display: 'flex' }}>
+                  style={{ ...inputStyle, paddingRight: 44 }}
+                />
+                <button type="button" onClick={() => setShowLoginPw(p => !p)} style={eyeBtn}>
                   {showLoginPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -201,8 +251,10 @@ export default function AuthCard() {
               <input type="checkbox" id="remember" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} style={{ width: 16, height: 16, cursor: 'pointer' }} />
               <label htmlFor="remember" style={{ fontSize: 14, color: 'var(--wear-muted)', cursor: 'pointer' }}>Remember me</label>
               {rememberMe && (
-                <select value={rememberDays} onChange={e => setRememberDays(Number(e.target.value))}
-                  style={{ marginLeft: 'auto', padding: '4px 8px', borderRadius: 8, border: '1.5px solid var(--wear-border)', fontSize: 13, fontFamily: 'var(--font-sans)', background: 'white' }}>
+                <select
+                  value={rememberDays} onChange={e => setRememberDays(Number(e.target.value))}
+                  style={{ marginLeft: 'auto', padding: '4px 8px', borderRadius: 8, border: '1.5px solid var(--wear-border)', fontSize: 13, fontFamily: 'var(--font-sans)', background: 'var(--input-bg)', color: 'var(--fg)' }}
+                >
                   <option value={1}>1 day</option>
                   <option value={7}>1 week</option>
                   <option value={30}>1 month</option>
@@ -218,19 +270,9 @@ export default function AuthCard() {
               Forgot password?
             </button>
           </motion.div>
-        ) : (
-          <motion.div key="signup" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            {/* Tabs */}
-            <div className="flex gap-1 p-1 mb-6 w-fit border" style={{ background: 'var(--cream)', borderRadius: 12, borderColor: 'var(--wear-border)' }}>
-              {(['login', 'signup'] as const).map(t => (
-                <button key={t} onClick={() => setTab(t)}
-                  className="cursor-pointer px-5 py-2 rounded-lg text-sm font-medium transition-all"
-                  style={{ border: 'none', background: tab === t ? 'white' : 'transparent', color: tab === t ? 'var(--ink)' : 'var(--wear-muted)', boxShadow: tab === t ? '0 1px 4px rgba(0,0,0,.08)' : 'none' }}>
-                  {t === 'login' ? 'Login' : 'Sign Up'}
-                </button>
-              ))}
-            </div>
 
+        ) : (
+          <motion.div key="signup" {...formAnim}>
             <Field label="Full Name">
               <input type="text" value={signName} onChange={e => setSignName(e.target.value)} placeholder="Your name" style={inputStyle} />
             </Field>
@@ -239,9 +281,11 @@ export default function AuthCard() {
             </Field>
             <Field label="Password">
               <div className="relative">
-                <input type={showSignPw ? 'text' : 'password'} value={signPw} onChange={e => setSignPw(e.target.value)}
-                  placeholder="••••••••" style={{ ...inputStyle, paddingRight: 44 }} />
-                <button type="button" onClick={() => setShowSignPw(p => !p)} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wear-muted)', display: 'flex' }}>
+                <input
+                  type={showSignPw ? 'text' : 'password'} value={signPw} onChange={e => setSignPw(e.target.value)}
+                  placeholder="••••••••" style={{ ...inputStyle, paddingRight: 44 }}
+                />
+                <button type="button" onClick={() => setShowSignPw(p => !p)} style={eyeBtn}>
                   {showSignPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -256,9 +300,11 @@ export default function AuthCard() {
             </Field>
             <Field label="Confirm Password">
               <div className="relative">
-                <input type={showSignConfirm ? 'text' : 'password'} value={signConfirm} onChange={e => setSignConfirm(e.target.value)}
-                  placeholder="••••••••" style={{ ...inputStyle, paddingRight: 44 }} />
-                <button type="button" onClick={() => setShowSignConfirm(p => !p)} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wear-muted)', display: 'flex' }}>
+                <input
+                  type={showSignConfirm ? 'text' : 'password'} value={signConfirm} onChange={e => setSignConfirm(e.target.value)}
+                  placeholder="••••••••" style={{ ...inputStyle, paddingRight: 44 }}
+                />
+                <button type="button" onClick={() => setShowSignConfirm(p => !p)} style={eyeBtn}>
                   {showSignConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -278,7 +324,8 @@ export default function AuthCard() {
       {/* Toast */}
       <AnimatePresence>
         {toast && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
             style={{ position: 'absolute', bottom: 20, left: 20, right: 20, padding: '12px 16px', borderRadius: 12, background: toast.type === 'success' ? '#4A8F6F' : '#B5584A', color: 'white', fontSize: 14, fontWeight: 500, textAlign: 'center' }}>
             {toast.msg}
           </motion.div>
@@ -290,8 +337,13 @@ export default function AuthCard() {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 16px', border: '1.5px solid var(--wear-border)',
-  borderRadius: 12, fontFamily: 'var(--font-sans)', fontSize: 14, background: 'white',
-  color: 'var(--ink)', outline: 'none',
+  borderRadius: 12, fontFamily: 'var(--font-sans)', fontSize: 14,
+  background: 'var(--input-bg)', color: 'var(--fg)', outline: 'none',
+}
+
+const eyeBtn: React.CSSProperties = {
+  position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--wear-muted)', display: 'flex',
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

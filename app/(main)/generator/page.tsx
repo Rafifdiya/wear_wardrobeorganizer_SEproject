@@ -65,6 +65,7 @@ export default function GeneratorPage() {
       setOptsInit(true)
     }
   }, [state.user, optsInit])
+
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<OutfitResult | null>(null)
   const [savedId, setSavedId] = useState<number | null>(null)
@@ -161,7 +162,7 @@ export default function GeneratorPage() {
 
       {/* Mode switcher */}
       <div className="flex gap-0 w-fit mb-7 border"
-        style={{ background: 'white', borderColor: 'var(--wear-border)', borderRadius: 16, padding: 5, boxShadow: 'var(--shadow)' }}>
+        style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', borderRadius: 16, padding: 5, boxShadow: 'var(--shadow)' }}>
         {([
           { v: 'ai' as GeneratorMode, label: 'Online Mode', sub: 'Needs internet', Icon: Wifi },
           { v: 'offline' as GeneratorMode, label: 'Offline Mode', sub: 'No internet needed', Icon: WifiOff },
@@ -195,7 +196,8 @@ export default function GeneratorPage() {
         {mode === 'ai' ? 'Online Mode — AI-powered outfit suggestions' : 'Offline Mode — Smart rule-based engine, no internet required'}
       </div>
 
-      <div className="grid gap-7" style={{ gridTemplateColumns: '360px 1fr', alignItems: 'start' }}>
+      {/* Responsive layout: controls left, result right on desktop; stacked on mobile */}
+      <div className="wear-gen-layout">
         {/* Controls */}
         <div style={{ position: 'sticky', top: 40 }}>
           <ControlCard title="Occasion">
@@ -212,7 +214,7 @@ export default function GeneratorPage() {
             <ControlCard title="Describe the Vibe">
               <textarea value={vibe} onChange={e => setVibe(e.target.value)} rows={3}
                 placeholder="e.g. 'smart casual for a creative office meeting'"
-                style={{ width: '100%', border: '1.5px solid var(--wear-border)', borderRadius: 12, padding: 12, fontFamily: 'var(--font-sans)', fontSize: 13, resize: 'vertical', outline: 'none', color: 'var(--ink)', minHeight: 80 }} />
+                style={{ width: '100%', border: '1.5px solid var(--wear-border)', borderRadius: 12, padding: 12, fontFamily: 'var(--font-sans)', fontSize: 13, resize: 'vertical', outline: 'none', color: 'var(--fg)', background: 'var(--input-bg)', minHeight: 80 }} />
             </ControlCard>
           )}
 
@@ -238,7 +240,7 @@ export default function GeneratorPage() {
         </div>
 
         {/* Result area */}
-        <div style={{ minHeight: 400 }}>
+        <div className="md:min-h-[400px]">
           <AnimatePresence mode="wait">
             {loading && (
               <motion.div key="loading"
@@ -253,10 +255,10 @@ export default function GeneratorPage() {
             {!loading && !result && (
               <motion.div key="empty"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center gap-3 text-center"
+                className="hidden md:flex flex-col items-center justify-center gap-3 text-center"
                 style={{ padding: '80px 40px', color: 'var(--wear-muted)' }}>
                 <Wand2 size={56} style={{ opacity: 0.35 }} />
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--ink)' }}>Ready to style you</div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--fg)' }}>Ready to style you</div>
                 <div style={{ fontSize: 14, maxWidth: 320, lineHeight: 1.6 }}>Pick a mode, set your preferences, then hit Generate.</div>
               </motion.div>
             )}
@@ -266,7 +268,7 @@ export default function GeneratorPage() {
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
                 className="rounded-3xl p-8 border"
-                style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+                style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
                 {/* Result header */}
                 <div className="flex items-start justify-between gap-5 mb-6">
                   <div>
@@ -276,7 +278,6 @@ export default function GeneratorPage() {
                       {result.mode === 'ai' ? 'AI Generated' : 'Rule-Based · Offline'}
                     </span>
                     <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700 }}>{result.name}</h2>
-                    {/* Palette dots for offline */}
                     {result.paletteColors && (
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         {result.paletteColors.map(c => (
@@ -288,10 +289,10 @@ export default function GeneratorPage() {
                     )}
                   </div>
                   <div className="flex gap-2 flex-shrink-0 flex-wrap justify-end">
-                    <motion.button whileHover={{ borderColor: 'var(--ink)' }} whileTap={{ scale: 0.97 }}
+                    <motion.button whileHover={{ borderColor: 'var(--fg)' }} whileTap={{ scale: 0.97 }}
                       onClick={handleGenerate}
                       className="flex items-center gap-1.5 cursor-pointer text-sm font-medium px-4 py-2 rounded-xl"
-                      style={{ border: '1.5px solid var(--wear-border)', background: 'transparent', color: 'var(--ink)' }}>
+                      style={{ border: '1.5px solid var(--wear-border)', background: 'transparent', color: 'var(--fg)' }}>
                       <RotateCcw size={14} /> Again
                     </motion.button>
                     <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
@@ -324,13 +325,13 @@ export default function GeneratorPage() {
 
                 {/* AI reasoning */}
                 {result.mode === 'ai' && result.reasoning && (
-                  <div className="rounded-2xl p-5 mb-4" style={{ background: 'linear-gradient(135deg, #F3F0FA 0%, #EDE8F5 100%)', borderLeft: '4px solid var(--ai)' }}>
+                  <div className="rounded-2xl p-5 mb-4" style={{ background: 'var(--ai-light)', borderLeft: '4px solid var(--ai)' }}>
                     <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--ai)' }}>
                       <Wand2 size={12} /> AI Reasoning
                     </div>
                     <p style={{ fontSize: 14, lineHeight: 1.7 }}>{result.reasoning}</p>
                     {result.stylingTip && (
-                      <p style={{ fontSize: 14, lineHeight: 1.7, marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(123,94,167,.15)' }}>
+                      <p style={{ fontSize: 14, lineHeight: 1.7, marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(123,94,167,.2)' }}>
                         <strong>Tip:</strong> {result.stylingTip}
                       </p>
                     )}
@@ -341,10 +342,10 @@ export default function GeneratorPage() {
                 {result.mode === 'offline' && (
                   <>
                     <div className="grid grid-cols-2 gap-3 mb-3">
-                      <ReasonCard style={{ background: '#FDF8F3', borderLeft: '3px solid var(--warm)' }} label="Color Harmony" text={result.colorExplain!} />
-                      <ReasonCard style={{ background: '#F3F8FD', borderLeft: '3px solid #7BA7BC' }} label="Occasion Fit" text={result.occExplain!} />
-                      <ReasonCard style={{ background: '#F3FDF5', borderLeft: '3px solid var(--success)' }} label="Season Match" text={result.seasonExplain!} />
-                      <ReasonCard style={{ background: '#FDF3F8', borderLeft: '3px solid #C87BA7' }} label="Style Mood" text={result.moodExplain!} />
+                      <ReasonCard style={{ background: 'rgba(200,149,108,.1)', borderLeft: '3px solid var(--warm)' }} label="Color Harmony" text={result.colorExplain!} />
+                      <ReasonCard style={{ background: 'rgba(123,167,188,.1)', borderLeft: '3px solid #7BA7BC' }} label="Occasion Fit" text={result.occExplain!} />
+                      <ReasonCard style={{ background: 'rgba(107,143,113,.1)', borderLeft: '3px solid var(--success)' }} label="Season Match" text={result.seasonExplain!} />
+                      <ReasonCard style={{ background: 'rgba(200,123,167,.1)', borderLeft: '3px solid #C87BA7' }} label="Style Mood" text={result.moodExplain!} />
                     </div>
                     {result.stylingTip && (
                       <div className="rounded-2xl p-4 text-white mb-4"
@@ -353,7 +354,6 @@ export default function GeneratorPage() {
                         <div style={{ fontSize: 13, lineHeight: 1.6 }}>{result.stylingTip}</div>
                       </div>
                     )}
-                    {/* Scores */}
                     {result.scores && (
                       <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--wear-border)' }}>
                         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Outfit Score</div>
@@ -389,7 +389,7 @@ export default function GeneratorPage() {
 
 function ControlCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-6 border mb-4" style={{ background: 'white', borderColor: 'var(--wear-border)' }}>
+    <div className="rounded-2xl p-6 border mb-4" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)' }}>
       <div style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 700, marginBottom: 14 }}>{title}</div>
       {children}
     </div>
@@ -410,7 +410,7 @@ function ToggleGroup<T extends string>({ options, value, onChange }: {
           style={{
             padding: '8px 16px', borderRadius: 30,
             border: `1.5px solid ${value === o.value ? 'var(--ink)' : 'var(--wear-border)'}`,
-            background: value === o.value ? 'var(--ink)' : 'white',
+            background: value === o.value ? 'var(--ink)' : 'transparent',
             color: value === o.value ? 'white' : 'var(--wear-muted)',
             fontFamily: 'var(--font-sans)',
           }}>

@@ -38,7 +38,7 @@ export default function OutfitDetailModal({ outfit, onClose, onDelete }: Props) 
             exit={{ opacity: 0, scale: 0.96, y: 16 }}
             transition={{ duration: 0.25 }}
             className="hide-scrollbar"
-            style={{ background: 'white', borderRadius: 24, width: 560, maxWidth: '92vw', maxHeight: '88vh', overflowY: 'auto' }}
+            style={{ background: 'var(--card-bg)', borderRadius: 24, width: 560, maxWidth: '92vw', maxHeight: '88vh', overflowY: 'auto' }}
           >
             {/* Header */}
             <div className="flex items-start justify-between p-7 pb-5">

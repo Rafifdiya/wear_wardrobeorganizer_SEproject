@@ -74,12 +74,12 @@ export default function DashboardPage() {
           </motion.button>
         </motion.div>
 
-        {/* Stat cards */}
-        <motion.div variants={fadeUp} className="grid grid-cols-4 gap-5 mb-10">
+        {/* Stat cards — 2 cols mobile, 4 cols desktop */}
+        <motion.div variants={fadeUp} className="wear-stats-row mb-10">
           {stats.map(s => (
             <motion.div key={s.label} whileHover={{ y: -2, boxShadow: 'var(--shadow)' }}
               className="rounded-2xl p-6 border"
-              style={{ background: 'white', borderColor: 'var(--wear-border)', transition: 'all .2s' }}>
+              style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', transition: 'all .2s' }}>
               <s.Icon size={24} style={{ color: 'var(--warm)', marginBottom: 12 }} />
               <div style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 700 }}>{s.value}</div>
               <div style={{ fontSize: 13, color: 'var(--wear-muted)', marginTop: 4 }}>{s.label}</div>
@@ -87,9 +87,9 @@ export default function DashboardPage() {
           ))}
         </motion.div>
 
-        {/* Main grid */}
-        <motion.div variants={fadeUp} className="grid gap-6" style={{ gridTemplateColumns: '1fr 340px' }}>
-          <div className="rounded-2xl p-7 border" style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+        {/* Main grid — stacks on mobile, side-by-side on desktop */}
+        <motion.div variants={fadeUp} className="wear-dash-main">
+          <div className="rounded-2xl p-7 border" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Recently Added</h2>
             {recentItems.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--wear-muted)' }}>
@@ -99,7 +99,7 @@ export default function DashboardPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+              <div className="wear-recent-grid">
                 {recentItems.map(c => (
                   <motion.div key={c.id} whileHover={{ scale: 1.03 }}
                     onClick={() => router.push('/wardrobe')}
@@ -127,7 +127,7 @@ export default function DashboardPage() {
               <div style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Today's Style Tip</div>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,.75)', lineHeight: 1.7 }}>{tip}</div>
             </div>
-            <div className="rounded-2xl p-7 border" style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+            <div className="rounded-2xl p-7 border" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 15, fontWeight: 700, marginBottom: 12 }}>Dual-Mode Engine</h3>
               <p style={{ fontSize: 13, color: 'var(--wear-muted)', lineHeight: 1.7 }}>
                 Switch between <strong style={{ color: 'var(--ai)' }}>Online Mode</strong> and{' '}

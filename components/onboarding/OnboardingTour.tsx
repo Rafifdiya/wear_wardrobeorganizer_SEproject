@@ -90,7 +90,7 @@ export default function OnboardingTour({ onComplete }: OnboardingTourProps) {
           exit={{ opacity: 0, scale: 0.95, y: 16 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            background: 'white',
+            background: 'var(--card-bg)',
             borderRadius: 28,
             padding: '40px 36px 32px',
             boxShadow: '0 32px 80px rgba(0,0,0,0.25)',
@@ -134,7 +134,7 @@ export default function OnboardingTour({ onComplete }: OnboardingTourProps) {
               {/* Title */}
               <h2 style={{
                 fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700,
-                color: 'var(--ink)', marginBottom: 12, lineHeight: 1.2,
+                color: 'var(--fg)', marginBottom: 12, lineHeight: 1.2,
               }}>
                 {current.title}
               </h2>
@@ -169,7 +169,7 @@ export default function OnboardingTour({ onComplete }: OnboardingTourProps) {
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '10px 18px', borderRadius: 12, cursor: step === 0 ? 'not-allowed' : 'pointer',
                 border: '1.5px solid var(--wear-border)', background: 'transparent',
-                color: step === 0 ? 'var(--wear-border)' : 'var(--ink)',
+                color: step === 0 ? 'var(--wear-border)' : 'var(--fg)',
                 fontSize: 14, fontWeight: 500,
               }}
             >

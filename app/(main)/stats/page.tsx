@@ -40,26 +40,28 @@ export default function StatsPage() {
         <p style={{ color: 'var(--wear-muted)', fontSize: 14, marginTop: 6 }}>Insights about your wardrobe.</p>
       </motion.div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+      {/* Responsive 2-column grid */}
+      <div className="wear-stats-charts">
+        <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Categories</h2>
           <BarChart data={catData} color="var(--warm)" />
         </motion.div>
 
-        <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+        <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Colors</h2>
           <BarChart
             data={colData.map(d => ({ label: d.label, count: d.count, icon: <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: d.hex, border: '1px solid #ddd', verticalAlign: 'middle' }} /> }))}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             colorFn={(d) => (d as any).hex}
           />
         </motion.div>
 
-        <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+        <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Seasons</h2>
           <BarChart data={seaData} color="#7BA7BC" />
         </motion.div>
 
-        <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'white', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
+        <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Generation Mode Usage</h2>
           {total === 0 ? (
             <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--wear-muted)', fontSize: 13 }}>No outfits generated yet.</div>
@@ -76,8 +78,10 @@ export default function StatsPage() {
 }
 
 function BarChart({ data, color, colorFn }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: { label: string; count: number; icon?: React.ReactNode | string }[]
   color?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   colorFn?: (d: any) => string
 }) {
   if (data.length === 0) {

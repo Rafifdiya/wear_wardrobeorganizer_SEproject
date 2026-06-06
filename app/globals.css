@@ -123,9 +123,23 @@
   }
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior: none;
   }
   html {
     @apply font-sans;
+    overscroll-behavior: none;
+  }
+}
+
+/* App shell: full height without overflow on mobile */
+.wear-app-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+@media (max-width: 767px) {
+  .wear-app-shell {
+    min-height: 0;
+    height: 100%;
   }
 }
 
@@ -145,6 +159,169 @@
   --offline-light: rgba(74, 143, 111, 0.12);
   --shadow: 0 2px 20px rgba(26, 23, 20, 0.08);
   --shadow-lg: 0 8px 40px rgba(26, 23, 20, 0.12);
+
+  /* Semantic vars for dark mode */
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --fg: #1A1714;
+
+  /* Font theme defaults — overridden by [data-font] */
+  --font-heading: var(--font-playfair, 'Playfair Display', serif);
+  --font-sans: var(--font-dm-sans, 'DM Sans', sans-serif);
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] {
+  --cream: #1E1B16;
+  --surface: #1E1B16;
+  --wear-border: #3A342C;
+  --wear-muted: #9A9088;
+  --warm: #D4A574;
+  --ai: #9B7EC8;
+  --ai-light: rgba(155, 126, 200, 0.18);
+  --offline: #5AA07F;
+  --offline-light: rgba(90, 160, 127, 0.18);
+  --shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+  --card-bg: #252119;
+  --input-bg: #2E2924;
+  --fg: #F0EBE3;
+}
+
+/* ── Font themes ── */
+[data-font="modern"] {
+  --font-heading: var(--font-plus-jakarta, 'Plus Jakarta Sans', sans-serif);
+  --font-sans: var(--font-plus-jakarta, 'Plus Jakarta Sans', sans-serif);
+}
+[data-font="serif"] {
+  --font-heading: var(--font-cormorant, 'Cormorant Garamond', serif);
+  --font-sans: var(--font-dm-sans, 'DM Sans', sans-serif);
+}
+[data-font="minimal"] {
+  --font-heading: var(--font-space-grotesk, 'Space Grotesk', sans-serif);
+  --font-sans: var(--font-space-grotesk, 'Space Grotesk', sans-serif);
+}
+
+/* Dark mode: form element overrides */
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--input-bg);
+  color: var(--fg);
+  border-color: var(--wear-border);
+}
+[data-theme="dark"] select option {
+  background-color: var(--input-bg);
+  color: var(--fg);
+}
+
+/* ── Responsive layout ── */
+
+/* Mobile sidebar overlay */
+.wear-mobile-backdrop {
+  display: none;
+}
+@media (max-width: 767px) {
+  .wear-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 49;
+  }
+}
+
+/* Mobile header bar */
+.wear-mobile-header {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--ink);
+  padding: 14px 20px;
+}
+@media (max-width: 767px) {
+  .wear-mobile-header { display: flex; }
+}
+
+/* Main content area */
+.wear-main-content {
+  margin-left: 240px;
+  padding: 40px 48px;
+  min-height: 100vh;
+  flex: 1;
+}
+@media (max-width: 767px) {
+  .wear-main-content {
+    margin-left: 0;
+    padding: 24px 20px 40px;
+    min-height: 0;
+  }
+}
+
+/* Dashboard stats row: 2 cols mobile, 4 cols desktop */
+.wear-stats-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 640px) {
+  .wear-stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+}
+
+/* Dashboard main 2-panel grid */
+.wear-dash-main {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .wear-dash-main {
+    grid-template-columns: 1fr 340px;
+  }
+}
+
+/* Generator side-panel layout */
+.wear-gen-layout {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+@media (min-width: 768px) {
+  .wear-gen-layout {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+/* Profile side-panel layout */
+.wear-profile-layout {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+@media (min-width: 768px) {
+  .wear-profile-layout {
+    grid-template-columns: 260px 1fr;
+  }
+}
+
+/* Stats 2-column charts */
+.wear-stats-charts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+@media (min-width: 640px) {
+  .wear-stats-charts {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* ── Font scale ── */
@@ -153,3 +330,80 @@ html { font-size: 17px; }
 /* Scrollbar hide utility */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Wardrobe grids ── */
+.wear-cloth-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  align-items: start;
+}
+@media (max-width: 767px) {
+  .wear-cloth-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    align-items: start;
+  }
+}
+
+.wear-outfit-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+@media (max-width: 640px) {
+  .wear-outfit-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+/* Horizontally scrollable filter row on mobile */
+.wear-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 767px) {
+  .wear-filter-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .wear-filter-row::-webkit-scrollbar { display: none; }
+  .wear-filter-row > * { flex-shrink: 0; }
+}
+
+/* ── Mobile compact adjustments ── */
+@media (max-width: 767px) {
+  /* Page-level headings */
+  h1 { font-size: 22px !important; }
+
+  /* Auth card logo */
+  .wear-auth-logo { font-size: 30px !important; }
+
+  /* Modal inner padding */
+  .wear-modal-inner { padding: 24px 20px 28px !important; }
+
+  /* Card padding reduction */
+  .wear-p-compact { padding: 18px !important; }
+
+  /* Outfit card preview images: smaller */
+  .wear-outfit-grid .rounded-xl { font-size: 18px; }
+}
+
+/* Dashboard recently-added image grid */
+.wear-recent-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+}
+@media (max-width: 767px) {
+  .wear-recent-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}

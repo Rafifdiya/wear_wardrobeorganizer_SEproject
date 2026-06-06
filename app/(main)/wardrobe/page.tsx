@@ -64,8 +64,8 @@ export default function WardrobePage() {
           </motion.button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 p-1 mb-7 w-fit border" style={{ background: 'white', borderRadius: 14, borderColor: 'var(--wear-border)' }}>
+        {/* Tab switcher */}
+        <div className="flex gap-1 p-1 mb-7 w-fit border" style={{ background: 'var(--card-bg)', borderRadius: 14, borderColor: 'var(--wear-border)' }}>
           {(['clothes', 'outfits'] as TabType[]).map((t, i) => (
             <button key={t} onClick={() => setTab(t)}
               className="cursor-pointer px-6 py-2.5 rounded-xl text-sm font-medium transition-all"
@@ -83,41 +83,44 @@ export default function WardrobePage() {
           {tab === 'clothes' ? (
             <motion.div key="clothes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
               {/* Filter chips */}
-              <div className="flex gap-2 flex-wrap mb-6 items-center">
-                <span style={{ fontSize: 13, color: 'var(--wear-muted)', fontWeight: 500, marginRight: 4 }}>Filter:</span>
+              <div className="wear-filter-row mb-6">
+                <span style={{ fontSize: 13, color: 'var(--wear-muted)', fontWeight: 500, marginRight: 4, flexShrink: 0 }}>Filter:</span>
                 {filterOptions.map(f => (
-                  <motion.button key={f.value} whileHover={{ borderColor: 'var(--ink)', color: 'var(--ink)' }}
+                  <motion.button key={f.value} whileHover={{ borderColor: 'var(--ink)', color: 'var(--fg)' }}
                     onClick={() => setFilter(f.value)}
                     className="cursor-pointer text-sm transition-all"
                     style={{
                       padding: '7px 16px', borderRadius: 30,
                       border: `1.5px solid ${filter === f.value ? 'var(--ink)' : 'var(--wear-border)'}`,
-                      background: filter === f.value ? 'var(--cream)' : 'white',
-                      color: filter === f.value ? 'var(--ink)' : 'var(--wear-muted)',
+                      background: filter === f.value ? 'var(--cream)' : 'var(--card-bg)',
+                      color: filter === f.value ? 'var(--fg)' : 'var(--wear-muted)',
                     }}>
                     {f.label}
                   </motion.button>
                 ))}
               </div>
 
-              {/* Grid */}
+              {/* Clothes grid */}
               <motion.div variants={container} initial="hidden" animate="show"
-                className="grid gap-4"
-                style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
+                className="wear-cloth-grid">
                 {/* Add card */}
-                <motion.button variants={cardAnim} whileHover={{ borderColor: 'var(--warm)', color: 'var(--warm)' }}
+                <motion.button variants={cardAnim}
+                  whileHover={{ borderColor: 'var(--warm)', color: 'var(--warm)' }}
                   onClick={() => setModalOpen(true)}
-                  className="flex flex-col items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="cursor-pointer w-full"
                   style={{
                     border: '2px dashed var(--wear-border)', borderRadius: 16,
-                    aspectRatio: '3/4', background: 'transparent',
-                    color: 'var(--wear-muted)', fontFamily: 'var(--font-sans)',
+                    background: 'transparent', padding: 0, overflow: 'hidden',
+                    fontFamily: 'var(--font-sans)', color: 'var(--wear-muted)',
+                    display: 'block',
                   }}>
-                  <Plus size={32} />
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>Add Clothing</span>
+                  <div className="flex flex-col items-center justify-center gap-2"
+                    style={{ aspectRatio: '3/4', background: 'rgba(200,149,108,.05)' }}>
+                    <Plus size={26} style={{ opacity: 0.55 }} />
+                    <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.8 }}>Add Clothing</span>
+                  </div>
                 </motion.button>
 
-                {/* Clothes cards */}
                 {filteredClothes.map(c => (
                   <ClothCard key={c.id} item={c}
                     onDelete={handleDeleteCloth}
@@ -136,13 +139,12 @@ export default function WardrobePage() {
                 <EmptyState title="No saved outfits yet" desc="Generate and save outfits you love." />
               ) : (
                 <motion.div variants={container} initial="hidden" animate="show"
-                  className="grid gap-5"
-                  style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+                  className="wear-outfit-grid">
                   {state.outfits.map(o => (
                     <motion.div key={o.id} variants={cardAnim} whileHover={{ y: -3, boxShadow: 'var(--shadow-lg)' }}
                       onClick={() => setDetailOutfit(o)}
                       className="rounded-2xl overflow-hidden border transition-all cursor-pointer"
-                      style={{ background: 'white', borderColor: 'var(--wear-border)' }}>
+                      style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)' }}>
                       {/* Preview grid */}
                       <div className="grid grid-cols-2 gap-2 p-3" style={{ background: 'var(--cream)' }}>
                         {o.pieces.slice(0, 4).map((p, i) => (
@@ -171,7 +173,7 @@ export default function WardrobePage() {
                           <motion.button whileHover={{ scale: 1.1 }}
                             onClick={e => { e.stopPropagation(); handleDeleteOutfit(o.id) }}
                             className="flex items-center justify-center rounded-full cursor-pointer"
-                            style={{ width: 30, height: 30, background: 'white', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
+                            style={{ width: 30, height: 30, background: 'var(--card-bg)', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
                             <Trash2 size={14} style={{ color: 'var(--error)' }} />
                           </motion.button>
                         </div>
@@ -207,11 +209,11 @@ function ClothCard({ item, onDelete, onEdit }: {
   return (
     <motion.div variants={cardAnim} whileHover={{ y: -3, boxShadow: 'var(--shadow-lg)' }}
       className="relative rounded-2xl overflow-hidden border group transition-all"
-      style={{ background: 'white', borderColor: 'var(--wear-border)' }}>
+      style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)' }}>
       <div className="flex items-center justify-center" style={{ aspectRatio: '3/4', background: 'var(--cream)' }}>
         {item.image
           ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-          : <span className="text-5xl">{catIcon(item.category)}</span>
+          : <span style={{ fontSize: 52, lineHeight: 1 }}>{catIcon(item.category)}</span>
         }
       </div>
       <div style={{ padding: 12 }}>
@@ -222,16 +224,16 @@ function ClothCard({ item, onDelete, onEdit }: {
           <Tag>{item.occasion}</Tag>
         </div>
       </div>
-      {/* Edit + Delete actions on hover */}
+      {/* Edit + Delete on hover */}
       <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <motion.button whileHover={{ scale: 1.1 }} onClick={() => onEdit(item)}
           className="flex items-center justify-center rounded-full cursor-pointer"
-          style={{ width: 30, height: 30, background: 'white', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
-          <Pencil size={13} style={{ color: 'var(--ink)' }} />
+          style={{ width: 30, height: 30, background: 'var(--card-bg)', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
+          <Pencil size={13} style={{ color: 'var(--fg)' }} />
         </motion.button>
         <motion.button whileHover={{ scale: 1.1 }} onClick={() => onDelete(item.id, item.name)}
           className="flex items-center justify-center rounded-full cursor-pointer"
-          style={{ width: 30, height: 30, background: 'white', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
+          style={{ width: 30, height: 30, background: 'var(--card-bg)', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
           <Trash2 size={13} style={{ color: 'var(--error)' }} />
         </motion.button>
       </div>
@@ -256,8 +258,8 @@ function EmptyState({ icon, title, desc, onClick }: { icon?: React.ReactNode; ti
       onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLDivElement).style.background = 'rgba(200,149,108,.05)' }}
       onMouseLeave={e => { if (onClick) (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
     >
-      <div style={{ opacity: 0.4, transition: 'opacity .2s', ...(onClick ? {} : {}) }}>{icon && icon}</div>
-      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--ink)' }}>{title}</div>
+      <div style={{ opacity: 0.4 }}>{icon && icon}</div>
+      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--fg)' }}>{title}</div>
       {desc && <div style={{ fontSize: 14, maxWidth: 320, lineHeight: 1.6 }}>{desc}</div>}
     </div>
   )
