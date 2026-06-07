@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
 import { getSession } from "@/lib/auth";
 
+export async function DELETE() {
+  const user = await getSession();
+  if (!user) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  try {
+    const supabase = createServerClient();
+    if (user.avatar_url) {
+      const parts = (user.avatar_url as string).split("avatars/");
+      const avatarPath = parts[1];
+      if (avatarPath) await supabase.storage.from("avatars").remove([avatarPath]);
+    }
+    await supabase.from("users").update({ avatar_url: null }).eq("id", user.id);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("[avatar DELETE]", e);
+    return NextResponse.json({ error: "Server error." }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest) {
   const user = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized." }, { status: 401 });

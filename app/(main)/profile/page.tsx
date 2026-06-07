@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, LogOut, Save, X, Eye, EyeOff, Trash2, Sun, Moon } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
@@ -54,6 +54,7 @@ export default function ProfilePage() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [showAvatarPopup, setShowAvatarPopup] = useState(false)
 
   async function handleSaveProfile() {
     if (!firstName.trim()) { showToast('First name required.', 'error'); return }
@@ -105,6 +106,18 @@ export default function ProfilePage() {
     }
   }
 
+  async function handleRemoveAvatar() {
+    try {
+      const res = await fetch('/api/profile/avatar', { method: 'DELETE', credentials: 'include' })
+      if (!res.ok) throw new Error()
+      setShowAvatarPopup(false)
+      showToast('Photo removed.')
+      window.location.reload()
+    } catch {
+      showToast('Failed to remove photo.', 'error')
+    }
+  }
+
   async function handleSavePrefs() {
     try {
       await updateUser({ prefOccasion, prefSeason, prefMood })
@@ -149,10 +162,10 @@ export default function ProfilePage() {
           <div className="relative w-24 h-24 mx-auto mb-4">
             <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center font-bold text-4xl text-white cursor-pointer"
               style={{ background: 'var(--warm)' }}
-              onClick={() => avatarRef.current?.click()}>
+              onClick={() => setShowAvatarPopup(true)}>
               {user.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : initials}
             </div>
-            <button onClick={() => avatarRef.current?.click()}
+            <button onClick={() => setShowAvatarPopup(true)}
               className="absolute bottom-0 right-0 flex items-center justify-center rounded-full cursor-pointer"
               style={{ width: 28, height: 28, background: 'var(--ink)', border: '2px solid var(--card-bg)' }}>
               <Camera size={14} color="white" />
@@ -411,6 +424,62 @@ export default function ProfilePage() {
           </motion.div>
         </div>
       </div>
+
+      {/* Avatar popup overlay */}
+      <AnimatePresence>
+        {showAvatarPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 flex items-center justify-center"
+            style={{ zIndex: 300, background: 'rgba(26,23,20,0.55)' }}
+            onClick={() => setShowAvatarPopup(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.93, y: 18 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.93, y: 18 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="relative rounded-3xl p-8 flex flex-col items-center"
+              style={{ background: 'var(--card-bg)', boxShadow: 'var(--shadow-lg)', width: 420, gap: 16 }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Close */}
+              <button onClick={() => setShowAvatarPopup(false)}
+                className="absolute top-4 right-4 flex items-center justify-center rounded-full cursor-pointer"
+                style={{ width: 28, height: 28, background: 'var(--cream)', border: '1.5px solid var(--wear-border)', color: 'var(--wear-muted)' }}>
+                <X size={14} />
+              </button>
+
+              {/* Preview */}
+              <div className="overflow-hidden flex items-center justify-center font-bold text-white"
+                style={{ width: 360, height: 360, borderRadius: 20, fontSize: 100, background: 'var(--warm)', flexShrink: 0 }}>
+                {user.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : initials}
+              </div>
+
+              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, color: 'var(--fg)' }}>Profile Photo</div>
+
+              <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
+                onClick={() => { setShowAvatarPopup(false); setTimeout(() => avatarRef.current?.click(), 100) }}
+                className="w-full flex items-center justify-center gap-2 cursor-pointer py-2.5 rounded-xl text-sm font-medium text-white"
+                style={{ background: 'var(--warm)', border: 'none' }}>
+                <Camera size={14} /> Change Image
+              </motion.button>
+
+              {user.avatar && (
+                <motion.button whileHover={{ opacity: 0.8 }} whileTap={{ scale: 0.97 }}
+                  onClick={handleRemoveAvatar}
+                  className="w-full flex items-center justify-center gap-2 cursor-pointer py-2.5 rounded-xl text-sm font-medium"
+                  style={{ border: '1.5px solid var(--error)', background: 'transparent', color: 'var(--error)' }}>
+                  <Trash2 size={14} /> Remove Image
+                </motion.button>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
