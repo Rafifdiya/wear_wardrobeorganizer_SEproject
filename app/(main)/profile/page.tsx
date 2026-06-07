@@ -29,7 +29,7 @@ const fadeUp = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transi
 export default function ProfilePage() {
   const { state, updateUser, deleteAccount, uploadAvatar, logout } = useWear()
   const { showToast } = useToast()
-  const { colorTheme, setColorTheme, fontTheme, setFontTheme, resetTheme } = useTheme()
+  const { colorTheme, setColorTheme, fontTheme, setFontTheme, textSize, setTextSize, resetTheme } = useTheme()
   const router = useRouter()
   const avatarRef = useRef<HTMLInputElement>(null)
 
@@ -291,7 +291,29 @@ export default function ProfilePage() {
                       background: fontTheme === opt.value ? 'rgba(200,149,108,.08)' : 'transparent',
                     }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: fontTheme === opt.value ? 'var(--warm)' : 'var(--fg)' }}>{opt.label}</div>
-                    <div style={{ fontSize: 11, color: 'var(--wear-muted)', marginTop: 2 }}>{opt.desc}</div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Accessibility */}
+          <motion.div variants={fadeUp} className="p-7 border-b" style={{ borderColor: 'var(--wear-border)' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Accessibility</h2>
+            <p style={{ color: 'var(--wear-muted)', fontSize: 13, marginBottom: 20 }}>Adjust text size for better readability.</p>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--wear-muted)', textTransform: 'uppercase', letterSpacing: '.8px', marginBottom: 10 }}>Text Size</div>
+              <div className="flex gap-3">
+                {(['small', 'default', 'large'] as const).map((s) => (
+                  <motion.button key={s} whileTap={{ scale: 0.97 }}
+                    onClick={() => setTextSize(s)}
+                    className="flex-1 cursor-pointer py-2.5 rounded-xl text-sm font-medium"
+                    style={{
+                      border: `1.5px solid ${textSize === s ? 'var(--warm)' : 'var(--wear-border)'}`,
+                      background: textSize === s ? 'rgba(200,149,108,.08)' : 'transparent',
+                      color: textSize === s ? 'var(--warm)' : 'var(--fg)',
+                    }}>
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
                   </motion.button>
                 ))}
               </div>

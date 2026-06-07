@@ -326,6 +326,8 @@
 
 /* ── Font scale ── */
 html { font-size: 17px; }
+html[data-textsize="default"] { font-size: 19px; }
+html[data-textsize="large"] { font-size: 21px; }
 
 /* Scrollbar hide utility */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
