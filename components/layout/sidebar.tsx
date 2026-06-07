@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWear } from '@/lib/store'
@@ -129,7 +130,7 @@ export default function Sidebar({ onOpenModal, activeModal, isOpen, onClose }: S
               style={{ width: 36, height: 36, background: 'var(--warm)', color: 'white' }}
             >
               {user?.avatar
-                ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                ? <Image src={user.avatar} alt="" width={36} height={36} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
                 : initials
               }
             </div>
