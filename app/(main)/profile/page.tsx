@@ -443,7 +443,7 @@ export default function ProfilePage() {
               exit={{ opacity: 0, scale: 0.93, y: 18 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className="relative rounded-3xl p-8 flex flex-col items-center"
-              style={{ background: 'var(--card-bg)', boxShadow: 'var(--shadow-lg)', width: 288, gap: 16 }}
+              style={{ background: 'var(--card-bg)', boxShadow: 'var(--shadow-lg)', width: 420, gap: 16 }}
               onClick={e => e.stopPropagation()}
             >
               {/* Close */}
@@ -454,14 +454,13 @@ export default function ProfilePage() {
               </button>
 
               {/* Preview */}
-              <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center font-bold text-4xl text-white"
-                style={{ background: 'var(--warm)' }}>
+              <div className="overflow-hidden flex items-center justify-center font-bold text-white"
+                style={{ width: 360, height: 360, borderRadius: 20, fontSize: 100, background: 'var(--warm)', flexShrink: 0 }}>
                 {user.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : initials}
               </div>
 
               <div style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, color: 'var(--fg)' }}>Profile Photo</div>
 
-              {/* Change Image */}
               <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
                 onClick={() => { setShowAvatarPopup(false); setTimeout(() => avatarRef.current?.click(), 100) }}
                 className="w-full flex items-center justify-center gap-2 cursor-pointer py-2.5 rounded-xl text-sm font-medium text-white"
@@ -469,7 +468,6 @@ export default function ProfilePage() {
                 <Camera size={14} /> Change Image
               </motion.button>
 
-              {/* Remove Image — only shown if avatar exists */}
               {user.avatar && (
                 <motion.button whileHover={{ opacity: 0.8 }} whileTap={{ scale: 0.97 }}
                   onClick={handleRemoveAvatar}
