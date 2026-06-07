@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Shirt, Sparkles, Sun, Wand2, Plus } from 'lucide-react'
@@ -100,13 +101,20 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="wear-recent-grid">
-                {recentItems.map(c => (
+                {recentItems.map((c, i) => (
                   <motion.div key={c.id} whileHover={{ scale: 1.03 }}
                     onClick={() => router.push('/wardrobe')}
                     className="cursor-pointer rounded-xl overflow-hidden relative"
                     style={{ aspectRatio: '3/4', background: 'var(--cream)' }}>
                     {c.image
-                      ? <img src={c.image} alt={c.name} className="w-full h-full object-cover" />
+                      ? <Image
+                          src={c.image}
+                          alt={c.name}
+                          fill
+                          sizes="(max-width: 767px) 33vw, 150px"
+                          className="object-cover"
+                          priority={i === 0}
+                        />
                       : <div className="w-full h-full flex items-center justify-center text-4xl">{catIcon(c.category)}</div>
                     }
                     <div className="absolute bottom-2 left-2 right-2 text-white text-center"

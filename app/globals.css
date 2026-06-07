@@ -145,6 +145,7 @@
 
 /* ── WEAR design tokens ── */
 :root {
+  --cloth-card-border: #B0A090;
   --cream: #F5F0E8;
   --ink: #1A1714;
   --warm: #C8956C;
@@ -172,6 +173,7 @@
 
 /* ── Dark mode ── */
 [data-theme="dark"] {
+  --cloth-card-border: var(--wear-border);
   --cream: #1E1B16;
   --surface: #1E1B16;
   --wear-border: #3A342C;

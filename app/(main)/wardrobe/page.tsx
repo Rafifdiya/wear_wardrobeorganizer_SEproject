@@ -208,8 +208,8 @@ function ClothCard({ item, onDelete, onEdit }: {
 }) {
   return (
     <motion.div variants={cardAnim} whileHover={{ y: -3, boxShadow: 'var(--shadow-lg)' }}
-      className="relative rounded-2xl overflow-hidden border group transition-all"
-      style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)' }}>
+      className="relative rounded-2xl overflow-hidden group transition-all"
+      style={{ background: 'var(--card-bg)', border: '2px solid var(--cloth-card-border)' }}>
       <div className="flex items-center justify-center" style={{ aspectRatio: '3/4', background: 'var(--cream)' }}>
         {item.image
           ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
