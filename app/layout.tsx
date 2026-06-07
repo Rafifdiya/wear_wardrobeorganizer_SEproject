@@ -70,8 +70,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           try {
             var c = localStorage.getItem('wear-color');
             var f = localStorage.getItem('wear-font');
+            var s = localStorage.getItem('wear-textsize');
             if (c) document.documentElement.setAttribute('data-theme', c);
             if (f) document.documentElement.setAttribute('data-font', f);
+            if (s) document.documentElement.setAttribute('data-textsize', s);
           } catch(e) {}
         ` }} />
       </head>
