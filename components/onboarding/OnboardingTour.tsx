@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronRight, ChevronLeft, X, Shirt, Sparkles, BarChart2, User, CheckCircle } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Shirt, Sparkles, BarChart2, CheckCircle } from 'lucide-react'
 
 const steps = [
   {
@@ -98,18 +98,6 @@ export default function OnboardingTour({ onComplete }: OnboardingTourProps) {
             overflow: 'hidden',
           }}
         >
-          {/* Skip button */}
-          <button
-            onClick={onComplete}
-            style={{
-              position: 'absolute', top: 20, right: 20,
-              background: 'var(--cream)', border: 'none', borderRadius: '50%',
-              width: 32, height: 32, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', cursor: 'pointer', color: 'var(--wear-muted)',
-            }}
-          >
-            <X size={14} />
-          </button>
 
           {/* Step content */}
           <AnimatePresence mode="wait" custom={direction}>
@@ -176,20 +164,33 @@ export default function OnboardingTour({ onComplete }: OnboardingTourProps) {
               <ChevronLeft size={16} /> Back
             </button>
 
-            <motion.button
-              whileHover={{ y: -1 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={next}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '10px 24px', borderRadius: 12, cursor: 'pointer',
-                border: 'none', background: 'var(--warm)',
-                color: 'white', fontSize: 14, fontWeight: 600,
-              }}
-            >
-              {step === steps.length - 1 ? "Let's Start!" : 'Next'}
-              {step < steps.length - 1 && <ChevronRight size={16} />}
-            </motion.button>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={onComplete}
+                style={{
+                  padding: '10px 18px', borderRadius: 12, cursor: 'pointer',
+                  border: '1.5px solid var(--wear-border)', background: 'transparent',
+                  color: 'var(--wear-muted)', fontSize: 14, fontWeight: 500,
+                }}
+              >
+                Skip
+              </button>
+
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={next}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '10px 24px', borderRadius: 12, cursor: 'pointer',
+                  border: 'none', background: 'var(--warm)',
+                  color: 'white', fontSize: 14, fontWeight: 600,
+                }}
+              >
+                {step === steps.length - 1 ? "Let's Start!" : 'Next'}
+                {step < steps.length - 1 && <ChevronRight size={16} />}
+              </motion.button>
+            </div>
           </div>
         </motion.div>
       </div>
