@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Upload, Loader2, ChevronDown } from 'lucide-react'
+import { X, Upload, Loader2, ChevronDown, Camera } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
 import { ClothingItem } from '@/lib/types'
@@ -60,6 +60,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
   const { addCloth, updateCloth, uploadClothingImage } = useWear()
   const { showToast } = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
   const isEdit = !!editItem
 
   const [name, setName] = useState('')
@@ -90,6 +91,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
     setName(''); setCategory('top'); setColor('white'); setSeason('all')
     setOccasion('casual'); setStyleTag('classic'); setImagePreview(null); setImageFile(null)
     if (fileRef.current) fileRef.current.value = ''
+    if (cameraRef.current) cameraRef.current.value = ''
   }
 
   function handleClose() { if (!isEdit) reset(); onClose() }
@@ -163,22 +165,37 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
 
             {/* Upload zone */}
             {!imagePreview ? (
-              <div
-                onClick={() => fileRef.current?.click()}
-                onDrop={e => { e.preventDefault(); setDragover(false); const f = e.dataTransfer.files[0]; if (f) readFile(f) }}
-                onDragOver={e => { e.preventDefault(); setDragover(true) }}
-                onDragLeave={() => setDragover(false)}
-                className="flex flex-col items-center justify-center text-center cursor-pointer mb-6 transition-all"
-                style={{
-                  border: `2px dashed ${dragover ? 'var(--warm)' : 'var(--wear-border)'}`,
-                  borderRadius: 16, padding: '48px 24px',
-                  background: dragover ? 'rgba(200,149,108,.04)' : 'transparent',
-                  color: dragover ? 'var(--warm)' : 'var(--wear-muted)',
-                }}
-              >
-                <Upload size={40} style={{ marginBottom: 12, opacity: 0.6 }} />
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>Drop photo here or click to upload</div>
-                <div style={{ fontSize: 13 }}>JPG, PNG — max 10MB</div>
+              <div className="mb-6">
+                <div
+                  onDrop={e => { e.preventDefault(); setDragover(false); const f = e.dataTransfer.files[0]; if (f) readFile(f) }}
+                  onDragOver={e => { e.preventDefault(); setDragover(true) }}
+                  onDragLeave={() => setDragover(false)}
+                  className="flex flex-col items-center justify-center text-center mb-3 transition-all"
+                  style={{
+                    border: `2px dashed ${dragover ? 'var(--warm)' : 'var(--wear-border)'}`,
+                    borderRadius: 16, padding: '32px 24px',
+                    background: dragover ? 'rgba(200,149,108,.04)' : 'transparent',
+                    color: dragover ? 'var(--warm)' : 'var(--wear-muted)',
+                  }}
+                >
+                  <Upload size={32} style={{ marginBottom: 8, opacity: 0.5 }} />
+                  <div style={{ fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Drop photo here</div>
+                  <div style={{ fontSize: 12 }}>or choose an option below</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => fileRef.current?.click()}
+                    className="flex items-center justify-center gap-2 cursor-pointer py-3 rounded-xl text-sm font-medium"
+                    style={{ border: '1.5px solid var(--wear-border)', background: 'var(--input-bg)', color: 'var(--fg)' }}>
+                    <Upload size={15} /> Gallery
+                  </motion.button>
+                  <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => cameraRef.current?.click()}
+                    className="flex items-center justify-center gap-2 cursor-pointer py-3 rounded-xl text-sm font-medium"
+                    style={{ border: '1.5px solid var(--wear-border)', background: 'var(--input-bg)', color: 'var(--fg)' }}>
+                    <Camera size={15} /> Take Photo
+                  </motion.button>
+                </div>
               </div>
             ) : (
               <div className="mb-6 relative">
@@ -188,14 +205,21 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
                   style={{ width: 32, height: 32, background: 'var(--card-bg)', border: '1px solid var(--wear-border)', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
                   <X size={14} />
                 </motion.button>
-                <button onClick={() => fileRef.current?.click()}
-                  className="mt-2 text-xs cursor-pointer"
-                  style={{ background: 'none', border: 'none', color: 'var(--warm)', fontWeight: 500 }}>
-                  Change photo
-                </button>
+                <div className="flex gap-3 mt-2">
+                  <button onClick={() => fileRef.current?.click()} className="text-xs cursor-pointer"
+                    style={{ background: 'none', border: 'none', color: 'var(--warm)', fontWeight: 500 }}>
+                    Change photo
+                  </button>
+                  <button onClick={() => cameraRef.current?.click()} className="text-xs cursor-pointer"
+                    style={{ background: 'none', border: 'none', color: 'var(--warm)', fontWeight: 500 }}>
+                    Retake
+                  </button>
+                </div>
               </div>
             )}
             <input ref={fileRef} type="file" accept="image/*" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) readFile(f) }} />
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) readFile(f) }} />
 
             <Field label="Item Name">
