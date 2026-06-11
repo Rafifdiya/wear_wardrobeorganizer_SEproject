@@ -371,14 +371,8 @@ html[data-textsize="large"] { font-size: 21px; }
 }
 @media (max-width: 767px) {
   .wear-filter-row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 4px;
+    flex-wrap: wrap;
   }
-  .wear-filter-row::-webkit-scrollbar { display: none; }
-  .wear-filter-row > * { flex-shrink: 0; }
 }
 
 /* ── Mobile compact adjustments ── */

@@ -44,10 +44,10 @@ export default function DashboardPage() {
   const tip = TIPS[new Date().getDay() % TIPS.length]
 
   const stats = [
-    { Icon: Shirt,    value: clothes.length,       label: 'Total Pieces' },
-    { Icon: Sparkles, value: outfits.length,        label: 'Saved Outfits' },
-    { Icon: Sun,      value: inSeason,              label: 'In-Season' },
-    { Icon: Wand2,    value: state.generatedCount,  label: 'Generated' },
+    { Icon: Shirt,    value: clothes.length,       label: 'Total Pieces',   href: '/wardrobe?tab=clothes' },
+    { Icon: Sparkles, value: outfits.length,        label: 'Saved Outfits',  href: '/wardrobe?tab=outfits' },
+    { Icon: Sun,      value: inSeason,              label: 'In-Season',      href: undefined },
+    { Icon: Wand2,    value: state.generatedCount,  label: 'Generated',      href: '/wardrobe?tab=history' },
   ]
 
   return (
@@ -79,8 +79,9 @@ export default function DashboardPage() {
         <motion.div variants={fadeUp} className="wear-stats-row mb-10">
           {stats.map(s => (
             <motion.div key={s.label} whileHover={{ y: -2, boxShadow: 'var(--shadow)' }}
+              onClick={() => s.href && router.push(s.href)}
               className="rounded-2xl p-6 border"
-              style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', transition: 'all .2s' }}>
+              style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', transition: 'all .2s', cursor: s.href ? 'pointer' : 'default' }}>
               <s.Icon size={24} style={{ color: 'var(--warm)', marginBottom: 12 }} />
               <div style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 700 }}>{s.value}</div>
               <div style={{ fontSize: 13, color: 'var(--wear-muted)', marginTop: 4 }}>{s.label}</div>

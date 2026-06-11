@@ -1,16 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, Pencil } from 'lucide-react'
+import { Plus, Trash2, Pencil, History } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
 import { catIcon } from '@/lib/colors'
 import AddClothingModal from '@/components/wardrobe/add-clothing-modal'
 import OutfitDetailModal from '@/components/wardrobe/outfit-detail-modal'
 import { ClothingItem, Outfit } from '@/lib/types'
+import { getHistory, HistoryEntry, timeAgo } from '@/lib/history'
 
-type TabType = 'clothes' | 'outfits'
+type TabType = 'clothes' | 'outfits' | 'history'
 type FilterType = 'all' | ClothingItem['category']
 
 const filterOptions: { value: FilterType; label: string }[] = [
@@ -29,8 +31,24 @@ const cardAnim = { hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scal
 export default function WardrobePage() {
   const { state, deleteCloth, deleteOutfit } = useWear()
   const { showToast } = useToast()
-  const [tab, setTab] = useState<TabType>('clothes')
+  const searchParams = useSearchParams()
+  const [tab, setTab] = useState<TabType>(() => {
+    const t = searchParams.get('tab')
+    if (t === 'outfits') return 'outfits'
+    if (t === 'history') return 'history'
+    return 'clothes'
+  })
   const [filter, setFilter] = useState<FilterType>('all')
+  const [history, setHistory] = useState<HistoryEntry[]>([])
+
+  useEffect(() => {
+    const t = searchParams.get('tab')
+    if (t === 'outfits' || t === 'clothes' || t === 'history') setTab(t)
+  }, [searchParams])
+
+  useEffect(() => {
+    if (tab === 'history') setHistory(getHistory())
+  }, [tab])
   const [modalOpen, setModalOpen] = useState(false)
   const [editItem, setEditItem] = useState<ClothingItem | undefined>(undefined)
   const [detailOutfit, setDetailOutfit] = useState<Outfit | null>(null)
@@ -66,21 +84,69 @@ export default function WardrobePage() {
 
         {/* Tab switcher */}
         <div className="flex gap-1 p-1 mb-7 w-fit border" style={{ background: 'var(--card-bg)', borderRadius: 14, borderColor: 'var(--wear-border)' }}>
-          {(['clothes', 'outfits'] as TabType[]).map((t, i) => (
-            <button key={t} onClick={() => setTab(t)}
+          {([
+            { value: 'clothes', label: 'Clothing Pieces' },
+            { value: 'outfits', label: 'Saved Outfits' },
+            { value: 'history', label: 'History' },
+          ] as { value: TabType; label: string }[]).map(t => (
+            <button key={t.value} onClick={() => setTab(t.value)}
               className="cursor-pointer px-6 py-2.5 rounded-xl text-sm font-medium transition-all"
               style={{
                 border: 'none',
-                background: tab === t ? 'var(--ink)' : 'transparent',
-                color: tab === t ? 'white' : 'var(--wear-muted)',
+                background: tab === t.value ? 'var(--ink)' : 'transparent',
+                color: tab === t.value ? 'white' : 'var(--wear-muted)',
               }}>
-              {i === 0 ? 'Clothing Pieces' : 'Saved Outfits'}
+              {t.label}
             </button>
           ))}
         </div>
 
         <AnimatePresence mode="wait">
-          {tab === 'clothes' ? (
+          {tab === 'history' ? (
+            <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <div className="flex items-center gap-2 mb-5" style={{ color: 'var(--wear-muted)', fontSize: 13 }}>
+                <History size={14} />
+                <span>Recently generated outfits — last 7 days, up to 20 entries</span>
+              </div>
+              {history.length === 0 ? (
+                <EmptyState title="No history yet" desc="Generated outfits will appear here automatically." />
+              ) : (
+                <motion.div variants={container} initial="hidden" animate="show" className="wear-outfit-grid">
+                  {history.map(h => (
+                    <motion.div key={h.id} variants={cardAnim} whileHover={{ y: -3, boxShadow: 'var(--shadow-lg)' }}
+                      className="rounded-2xl overflow-hidden border transition-all"
+                      style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)' }}>
+                      <div className="grid grid-cols-2 gap-2 p-3" style={{ background: 'var(--cream)' }}>
+                        {h.pieces.slice(0, 4).map((p, i) => (
+                          <div key={i} className="rounded-xl overflow-hidden flex items-center justify-center"
+                            style={{ background: 'var(--wear-border)', aspectRatio: '1' }}>
+                            {p.image
+                              ? <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                              : <span className="text-2xl">{catIcon(p.category)}</span>
+                            }
+                          </div>
+                        ))}
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div style={{ fontSize: 15, fontWeight: 600 }}>{h.name}</div>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                            style={{ background: h.mode === 'ai' ? 'var(--ai-light)' : 'var(--offline-light)', color: h.mode === 'ai' ? 'var(--ai)' : 'var(--offline)' }}>
+                            {h.mode === 'ai' ? 'AI' : 'Offline'}
+                          </span>
+                        </div>
+                        <div className="flex gap-2 flex-wrap mb-2">
+                          <Tag>{h.occasion}</Tag>
+                          <Tag>{h.season}</Tag>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--wear-muted)' }}>{timeAgo(h.generatedAt)}</div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </motion.div>
+          ) : tab === 'clothes' ? (
             <motion.div key="clothes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
               {/* Filter chips */}
               <div className="wear-filter-row mb-6">

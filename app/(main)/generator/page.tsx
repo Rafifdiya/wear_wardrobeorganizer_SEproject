@@ -11,6 +11,7 @@ import {
   buildSeasonExplain, buildMoodExplain, buildTip, buildScores,
 } from '@/lib/engine'
 import { ClothingItem, GenOptions, GeneratorMode, Occasion, Season, ColorStrategy, StyleMood, Outfit } from '@/lib/types'
+import { addToHistory } from '@/lib/history'
 
 type OutfitResult = {
   name: string
@@ -96,8 +97,10 @@ export default function GeneratorPage() {
     if (!pieces) { showToast('Not enough variety for this filter.', 'error'); return }
     incCounts('offline')
     setSavedId(null)
+    const name = buildName(opts.occ)
+    addToHistory({ name, pieces, occasion: opts.occ, season: opts.season, mode: 'offline' })
     setResult({
-      name: buildName(opts.occ),
+      name,
       pieces,
       mode: 'offline',
       colorExplain: buildColorExplain(pieces),
@@ -143,6 +146,7 @@ export default function GeneratorPage() {
       })
 
       incCounts('ai')
+      addToHistory({ name: parsed.outfitName, pieces: matched, occasion: opts.occ, season: opts.season, mode: 'ai' })
       setResult({ name: parsed.outfitName, pieces: matched, mode: 'ai', reasoning: parsed.styleReasoning, stylingTip: parsed.stylingTip })
     } catch {
       showToast('AI unavailable — switching to Offline Mode.', 'error')
