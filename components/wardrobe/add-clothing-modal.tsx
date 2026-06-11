@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Upload, Loader2 } from 'lucide-react'
+import { X, Upload, Loader2, ChevronDown } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
 import { ClothingItem } from '@/lib/types'
@@ -45,9 +45,9 @@ const STYLES = [
 ]
 
 const selStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12,
+  width: '100%', padding: '12px 40px 12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12,
   fontFamily: 'var(--font-sans)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--fg)',
-  outline: 'none', appearance: 'none',
+  outline: 'none', appearance: 'none', cursor: 'pointer',
 }
 
 interface Props {
@@ -206,34 +206,44 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Category">
-                <select value={category} onChange={e => setCategory(e.target.value as ClothingItem['category'])} style={selStyle}>
-                  {CATEGORIES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+                <SelectWrap>
+                  <select value={category} onChange={e => setCategory(e.target.value as ClothingItem['category'])} style={selStyle}>
+                    {CATEGORIES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrap>
               </Field>
               <Field label="Color">
-                <select value={color} onChange={e => setColor(e.target.value)} style={selStyle}>
-                  {COLORS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+                <SelectWrap>
+                  <select value={color} onChange={e => setColor(e.target.value)} style={selStyle}>
+                    {COLORS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrap>
               </Field>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Season">
-                <select value={season} onChange={e => setSeason(e.target.value as ClothingItem['season'])} style={selStyle}>
-                  {SEASONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+                <SelectWrap>
+                  <select value={season} onChange={e => setSeason(e.target.value as ClothingItem['season'])} style={selStyle}>
+                    {SEASONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrap>
               </Field>
               <Field label="Occasion">
-                <select value={occasion} onChange={e => setOccasion(e.target.value as ClothingItem['occasion'])} style={selStyle}>
-                  {OCCASIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+                <SelectWrap>
+                  <select value={occasion} onChange={e => setOccasion(e.target.value as ClothingItem['occasion'])} style={selStyle}>
+                    {OCCASIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </SelectWrap>
               </Field>
             </div>
 
             <Field label="Style Tag">
-              <select value={styleTag} onChange={e => setStyleTag(e.target.value)} style={selStyle}>
-                {STYLES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+              <SelectWrap>
+                <select value={styleTag} onChange={e => setStyleTag(e.target.value)} style={selStyle}>
+                  {STYLES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </SelectWrap>
             </Field>
 
             <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
@@ -247,6 +257,18 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
         </motion.div>
       )}
     </AnimatePresence>
+  )
+}
+
+function SelectWrap({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      {children}
+      <ChevronDown size={16} style={{
+        position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+        color: 'var(--wear-muted)', pointerEvents: 'none',
+      }} />
+    </div>
   )
 }
 

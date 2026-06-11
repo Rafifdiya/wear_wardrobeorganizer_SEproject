@@ -50,7 +50,7 @@ export default function StatsPage() {
         <motion.div variants={cardAnim} className="rounded-2xl p-7 border" style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)', boxShadow: 'var(--shadow)' }}>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Colors</h2>
           <BarChart
-            data={colData.map(d => ({ label: d.label, count: d.count, icon: <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: d.hex, border: '1px solid #ddd', verticalAlign: 'middle' }} /> }))}
+            data={colData.map(d => ({ label: d.label, count: d.count, hex: d.hex, icon: <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: d.hex, border: '1px solid #ddd', verticalAlign: 'middle' }} /> }))}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             colorFn={(d) => (d as any).hex}
           />
