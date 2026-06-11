@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, Pencil } from 'lucide-react'
 import { useWear } from '@/lib/store'
@@ -29,8 +30,17 @@ const cardAnim = { hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scal
 export default function WardrobePage() {
   const { state, deleteCloth, deleteOutfit } = useWear()
   const { showToast } = useToast()
-  const [tab, setTab] = useState<TabType>('clothes')
+  const searchParams = useSearchParams()
+  const [tab, setTab] = useState<TabType>(() => {
+    const t = searchParams.get('tab')
+    return t === 'outfits' ? 'outfits' : 'clothes'
+  })
   const [filter, setFilter] = useState<FilterType>('all')
+
+  useEffect(() => {
+    const t = searchParams.get('tab')
+    if (t === 'outfits' || t === 'clothes') setTab(t)
+  }, [searchParams])
   const [modalOpen, setModalOpen] = useState(false)
   const [editItem, setEditItem] = useState<ClothingItem | undefined>(undefined)
   const [detailOutfit, setDetailOutfit] = useState<Outfit | null>(null)
