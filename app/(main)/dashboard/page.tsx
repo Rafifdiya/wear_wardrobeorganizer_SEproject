@@ -47,7 +47,7 @@ export default function DashboardPage() {
     { Icon: Shirt,    value: clothes.length,       label: 'Total Pieces',   href: '/wardrobe?tab=clothes' },
     { Icon: Sparkles, value: outfits.length,        label: 'Saved Outfits',  href: '/wardrobe?tab=outfits' },
     { Icon: Sun,      value: inSeason,              label: 'In-Season',      href: undefined },
-    { Icon: Wand2,    value: state.generatedCount,  label: 'Generated',      href: undefined },
+    { Icon: Wand2,    value: state.generatedCount,  label: 'Generated',      href: '/wardrobe?tab=history' },
   ]
 
   return (
