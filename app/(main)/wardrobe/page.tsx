@@ -25,6 +25,13 @@ const filterOptions: { value: FilterType; label: string }[] = [
   { value: 'accessory', label: 'Accessories' },
 ]
 
+const SEASON_LABELS: Record<string, string> = {
+  all: 'All Seasons', spring: 'Spring', summer: 'Summer', fall: 'Fall', winter: 'Winter',
+}
+const OCCASION_LABELS: Record<string, string> = {
+  any: 'Any Occasion', casual: 'Casual', work: 'Work', formal: 'Formal', gym: 'Gym',
+}
+
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } }
 const cardAnim = { hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1, transition: { duration: 0.25 } } }
 
@@ -286,8 +293,8 @@ function ClothCard({ item, onDelete, onEdit }: {
         <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
         <div style={{ fontSize: 11, color: 'var(--wear-muted)', marginTop: 4 }}>{item.color}</div>
         <div className="flex gap-1 flex-wrap mt-2">
-          <Tag>{item.season}</Tag>
-          <Tag>{item.occasion}</Tag>
+          {item.season.split(',').map(s => <Tag key={s}>{SEASON_LABELS[s] ?? s}</Tag>)}
+          {item.occasion.split(',').map(o => <Tag key={o}>{OCCASION_LABELS[o] ?? o}</Tag>)}
         </div>
       </div>
       {/* Edit + Delete on hover */}

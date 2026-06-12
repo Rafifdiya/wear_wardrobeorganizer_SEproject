@@ -334,9 +334,9 @@ function MultiCheckDropdown({
     onChange(next.length === 0 ? allValue : next.join(','))
   }
 
-  const displayLabel = isAll
-    ? (options.find(o => o.value === allValue)?.label ?? allValue)
-    : options.filter(o => selected.includes(o.value)).map(o => o.label).join(', ')
+  const selectedOptions = isAll
+    ? options.filter(o => o.value === allValue)
+    : options.filter(o => selected.includes(o.value))
 
   return (
     <div>
@@ -344,18 +344,28 @@ function MultiCheckDropdown({
         type="button"
         onClick={() => setOpen(o => !o)}
         style={{
-          width: '100%', padding: '12px 16px',
+          width: '100%', padding: '8px 12px',
           border: '1.5px solid var(--wear-border)',
           borderRadius: open ? '12px 12px 0 0' : 12,
           fontFamily: 'var(--font-sans)', fontSize: 14,
           background: 'var(--input-bg)', color: 'var(--fg)',
           outline: 'none', cursor: 'pointer', textAlign: 'left',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+          display: 'flex', alignItems: 'center', gap: 8, minHeight: 46,
         }}
       >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-          {displayLabel}
-        </span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, flex: 1 }}>
+          {selectedOptions.map(opt => (
+            <span key={opt.value} style={{
+              padding: '3px 10px', borderRadius: 20,
+              background: 'rgba(200,149,108,.15)',
+              color: 'var(--warm)', fontSize: 12, fontWeight: 500,
+              border: '1px solid rgba(200,149,108,.25)',
+              whiteSpace: 'nowrap',
+            }}>
+              {opt.label}
+            </span>
+          ))}
+        </div>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}
           style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--wear-muted)' }}>
           <ChevronDown size={16} />
