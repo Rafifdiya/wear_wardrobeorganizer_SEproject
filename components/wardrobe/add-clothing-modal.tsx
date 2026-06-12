@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Upload, Loader2, ChevronDown, Camera } from 'lucide-react'
+import { X, Upload, Loader2, ChevronDown, Camera, Sparkles } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
 import { ClothingItem } from '@/lib/types'
@@ -73,6 +73,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [dragover, setDragover] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
 
   useEffect(() => {
     if (editItem) {
@@ -90,6 +91,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
   function reset() {
     setName(''); setCategory('top'); setColor('white'); setSeason('all')
     setOccasion('casual'); setStyleTag('classic'); setImagePreview(null); setImageFile(null)
+    setAnalyzing(false)
     if (fileRef.current) fileRef.current.value = ''
     if (cameraRef.current) cameraRef.current.value = ''
   }
@@ -100,9 +102,30 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
     if (!file.type.startsWith('image/')) return
     setImageFile(file)
     const r = new FileReader()
-    r.onload = ev => {
-      setImagePreview(ev.target?.result as string)
+    r.onload = async ev => {
+      const dataUrl = ev.target?.result as string
+      setImagePreview(dataUrl)
       if (!name) setName(file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '))
+
+      // Auto-detect color and category via Gemini Vision
+      setAnalyzing(true)
+      try {
+        const base64 = dataUrl.split(',')[1]
+        const res = await fetch('/api/items/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64, mimeType: file.type }),
+        })
+        if (res.ok) {
+          const { color: detectedColor, category: detectedCategory } = await res.json()
+          if (detectedColor) setColor(detectedColor)
+          if (detectedCategory) setCategory(detectedCategory as ClothingItem['category'])
+        }
+      } catch {
+        // silently fail — user can still pick manually
+      } finally {
+        setAnalyzing(false)
+      }
     }
     r.readAsDataURL(file)
   }
@@ -228,17 +251,25 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
                 style={{ width: '100%', padding: '12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12, fontFamily: 'var(--font-sans)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--fg)', outline: 'none' }} />
             </Field>
 
+            {analyzing && (
+              <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl" style={{ background: 'rgba(200,149,108,.1)', border: '1px solid rgba(200,149,108,.3)' }}>
+                <Sparkles size={14} style={{ color: 'var(--warm)', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: 'var(--warm)', fontWeight: 500 }}>Detecting color & category…</span>
+                <Loader2 size={13} className="animate-spin ml-auto" style={{ color: 'var(--warm)' }} />
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Category">
+              <Field label={analyzing ? 'Category (detecting…)' : 'Category'}>
                 <SelectWrap>
-                  <select value={category} onChange={e => setCategory(e.target.value as ClothingItem['category'])} style={selStyle}>
+                  <select value={category} onChange={e => setCategory(e.target.value as ClothingItem['category'])} style={{ ...selStyle, opacity: analyzing ? 0.6 : 1 }} disabled={analyzing}>
                     {CATEGORIES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </SelectWrap>
               </Field>
-              <Field label="Color">
+              <Field label={analyzing ? 'Color (detecting…)' : 'Color'}>
                 <SelectWrap>
-                  <select value={color} onChange={e => setColor(e.target.value)} style={selStyle}>
+                  <select value={color} onChange={e => setColor(e.target.value)} style={{ ...selStyle, opacity: analyzing ? 0.6 : 1 }} disabled={analyzing}>
                     {COLORS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </SelectWrap>
@@ -271,11 +302,11 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
             </Field>
 
             <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
-              onClick={handleSave} disabled={saving}
+              onClick={handleSave} disabled={saving || analyzing}
               className="w-full py-4 mt-2 cursor-pointer font-medium flex items-center justify-center gap-2"
-              style={{ background: saving ? 'var(--wear-muted)' : 'var(--warm)', color: 'white', border: 'none', borderRadius: 14, fontFamily: 'var(--font-sans)', fontSize: 15 }}>
+              style={{ background: (saving || analyzing) ? 'var(--wear-muted)' : 'var(--warm)', color: 'white', border: 'none', borderRadius: 14, fontFamily: 'var(--font-sans)', fontSize: 15 }}>
               {saving && <Loader2 size={16} className="animate-spin" />}
-              {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add to Wardrobe'}
+              {saving ? 'Saving…' : analyzing ? 'Analyzing image…' : isEdit ? 'Save Changes' : 'Add to Wardrobe'}
             </motion.button>
           </motion.div>
         </motion.div>
