@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-    const avatarUrl = data.publicUrl;
+    const avatarUrl = `${data.publicUrl}?t=${Date.now()}`;
 
     await supabase.from("users").update({ avatar_url: avatarUrl }).eq("id", user.id);
     return NextResponse.json({ avatarUrl });
