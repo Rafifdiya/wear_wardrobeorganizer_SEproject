@@ -126,7 +126,7 @@ export default function GeneratorPage() {
     if (pool.length < 2) pool = state.clothes
 
     const clothesList = pool.map(c => `- ${c.name} (${c.category}, ${c.color || 'unspecified color'}, ${c.occasion} occasion, ${c.season} season)`).join('\n')
-    const prompt = `You are a professional fashion stylist. The user's wardrobe:\n${clothesList}\n\nCreate ONE stylish outfit for: ${opts.occ} occasion, ${opts.season} season, ${opts.palette} color palette.${vibe ? `\nContext: "${vibe}"` : ''}\n\nRespond ONLY in this JSON (no markdown, no extra text):\n{"outfitName":"short creative name","pieces":["exact item name from list","...up to 4 items"],"styleReasoning":"2-3 sentences on why this combo works","stylingTip":"one practical tip"}`
+    const prompt = `You are a professional fashion stylist. The user's wardrobe:\n${clothesList}\n\nCreate ONE stylish outfit for: ${opts.occ} occasion, ${opts.season} season, ${opts.palette} color palette.${vibe ? `\nContext: "${vibe}"` : ''}\n\nRules:\n- Pick at most 1 item per category (e.g. only 1 footwear, only 1 top)\n- Choose 2-4 items total\n- Use exact item names from the list above\n\nRespond ONLY in this JSON (no markdown, no extra text):\n{"outfitName":"short creative name","pieces":["exact item name from list","..."],"styleReasoning":"2-3 sentences on why this combo works","stylingTip":"one practical tip"}`
 
     try {
       const res = await fetch('/api/generate', {
@@ -138,12 +138,17 @@ export default function GeneratorPage() {
       const data = await res.json()
       const parsed = JSON.parse(data.text.replace(/```json|```/g, '').trim())
 
+      const usedIds = new Set<number>()
       const matched = (parsed.pieces as string[]).map(name => {
-        return pool.find(c =>
-          c.name.toLowerCase().includes(name.toLowerCase().split(' ')[0]) ||
-          name.toLowerCase().includes(c.name.toLowerCase().split(' ')[0])
-        ) ?? ({ name, category: 'top', color: '', season: 'all', occasion: 'casual', styleTag: 'classic', image: null, id: 0, addedAt: '' } as ClothingItem)
-      })
+        const found = pool.find(c =>
+          !usedIds.has(c.id) && (
+            c.name.toLowerCase().includes(name.toLowerCase().split(' ')[0]) ||
+            name.toLowerCase().includes(c.name.toLowerCase().split(' ')[0])
+          )
+        )
+        if (found) usedIds.add(found.id)
+        return found ?? ({ name, category: 'top', color: '', season: 'all', occasion: 'casual', styleTag: 'classic', image: null, id: 0, addedAt: '' } as ClothingItem)
+      }).filter((item, idx, arr) => item.id === 0 || arr.findIndex(x => x.id === item.id) === idx)
 
       incCounts('ai')
       addToHistory({ name: parsed.outfitName, pieces: matched, occasion: opts.occ, season: opts.season, mode: 'ai' })

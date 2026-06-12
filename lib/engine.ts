@@ -54,15 +54,23 @@ export function generateOfflineOutfit(
   )
   if (pool.length < 2) pool = clothes
 
-  let oPool = pool.filter(c =>
+  // Per-category: prefer occasion-matching items, fall back to full pool if category empty
+  const oMatched = pool.filter(c =>
     c.occasion === 'any' || c.occasion === opts.occ || opts.occ === 'casual'
   )
-  if (oPool.length < 2) oPool = pool
-
   const bycat: Record<string, ClothingItem[]> = {}
-  ;(['top','bottom','dress','outerwear','footwear','accessory'] as const).forEach(c => {
-    bycat[c] = oPool.filter(i => i.category === c)
+  ;(['top','bottom','dress','outerwear','footwear','accessory'] as const).forEach(cat => {
+    const matched = oMatched.filter(i => i.category === cat)
+    bycat[cat] = matched.length > 0 ? matched : pool.filter(i => i.category === cat)
   })
+
+  // Coverage guarantee — if still missing top/bottom/dress, pull from full wardrobe
+  if (bycat.dress.length === 0) {
+    if (bycat.top.length === 0) bycat.top = clothes.filter(i => i.category === 'top')
+    if (bycat.bottom.length === 0) bycat.bottom = clothes.filter(i => i.category === 'bottom')
+  }
+  if (bycat.dress.length === 0 && bycat.top.length === 0)
+    bycat.dress = clothes.filter(i => i.category === 'dress')
 
   const useDress = bycat.dress.length > 0 && (bycat.top.length === 0 || Math.random() > 0.5)
   const sel: ClothingItem[] = []
