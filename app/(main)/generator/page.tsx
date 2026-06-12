@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Wifi, WifiOff, RotateCcw, Bookmark, Wand2, Loader2 } from 'lucide-react'
 import { useWear } from '@/lib/store'
@@ -70,6 +70,15 @@ export default function GeneratorPage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<OutfitResult | null>(null)
   const [savedId, setSavedId] = useState<number | null>(null)
+
+  const resultRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (result && resultRef.current && window.innerWidth < 768) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }, [result])
 
   function setOpt<K extends keyof GenOptions>(key: K, val: GenOptions[K]) {
     setOpts(prev => ({ ...prev, [key]: val }))
@@ -249,7 +258,7 @@ export default function GeneratorPage() {
         </div>
 
         {/* Result area */}
-        <div className="md:min-h-[400px]">
+        <div ref={resultRef} className="md:min-h-[400px]">
           <AnimatePresence mode="wait">
             {loading && (
               <motion.div key="loading"
