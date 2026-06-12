@@ -23,11 +23,13 @@ function scoredPick(
     let score = 0
     picked.forEach(p => { score += fn(item.color, p.color) })
     const tf = OCC_FORMAL[opts.occ] ?? 3
-    score -= Math.abs(tf - (ITEM_FORMAL[item.occasion] ?? 4)) * 0.5
-    score -= Math.abs(tf - (STYLE_FORMAL[item.styleTag] ?? 4)) * 0.3
+    const occDist = Math.min(...item.occasion.split(',').map(o => Math.abs(tf - (ITEM_FORMAL[o] ?? 4))))
+    const styleDist = Math.min(...item.styleTag.split(',').map(s => Math.abs(tf - (STYLE_FORMAL[s] ?? 4))))
+    score -= occDist * 0.5
+    score -= styleDist * 0.3
     if (opts.mood === 'minimal' && COLOR_META[item.color as keyof typeof COLOR_META]?.neutral) score += 3
     if (opts.mood === 'bold' && !COLOR_META[item.color as keyof typeof COLOR_META]?.neutral) score += 3
-    if (opts.mood === 'classic' && ['classic', 'formal'].includes(item.styleTag)) score += 3
+    if (opts.mood === 'classic' && item.styleTag.split(',').some(s => ['classic', 'formal'].includes(s))) score += 3
     score += (Math.random() - 0.5) * 2
     return { item, score }
   })
@@ -49,15 +51,17 @@ export function generateOfflineOutfit(
 ): ClothingItem[] | null {
   if (clothes.length < 2) return null
 
-  let pool = clothes.filter(c =>
-    opts.season === 'all' || c.season === 'all' || c.season === opts.season
-  )
+  let pool = clothes.filter(c => {
+    const s = c.season.split(',')
+    return opts.season === 'all' || s.includes('all') || s.includes(opts.season)
+  })
   if (pool.length < 2) pool = clothes
 
   // Per-category: prefer occasion-matching items, fall back to full pool if category empty
-  const oMatched = pool.filter(c =>
-    c.occasion === 'any' || c.occasion === opts.occ || opts.occ === 'casual'
-  )
+  const oMatched = pool.filter(c => {
+    const o = c.occasion.split(',')
+    return o.includes('any') || o.includes(opts.occ) || opts.occ === 'casual'
+  })
   const bycat: Record<string, ClothingItem[]> = {}
   ;(['top','bottom','dress','outerwear','footwear','accessory'] as const).forEach(cat => {
     const matched = oMatched.filter(i => i.category === cat)
@@ -135,7 +139,7 @@ export function buildColorExplain(sel: ClothingItem[]): string {
 
 export function buildOccExplain(sel: ClothingItem[], opts: GenOptions): string {
   const tf = OCC_FORMAL[opts.occ] ?? 3
-  const avg = sel.reduce((s, p) => s + (ITEM_FORMAL[p.occasion] ?? 4), 0) / sel.length
+  const avg = sel.reduce((s, p) => s + Math.max(...p.occasion.split(',').map(o => ITEM_FORMAL[o] ?? 4)), 0) / sel.length
   if (Math.abs(tf - avg) <= 2) return `Each piece aligns with the formality level expected for ${OCC_LABELS[opts.occ]}.`
   if (avg > tf) return 'Slightly more formal than typical — you\'ll look polished.'
   return `Relaxed pieces make this comfortable for ${OCC_LABELS[opts.occ]}.`
@@ -143,7 +147,7 @@ export function buildOccExplain(sel: ClothingItem[], opts: GenOptions): string {
 
 export function buildSeasonExplain(sel: ClothingItem[], opts: GenOptions): string {
   if (opts.season === 'all') return `All ${sel.length} pieces are versatile year-round options.`
-  const m = sel.filter(p => p.season === opts.season || p.season === 'all').length
+  const m = sel.filter(p => { const s = p.season.split(','); return s.includes(opts.season) || s.includes('all') }).length
   return `${m} of ${sel.length} pieces are tagged for ${SEASON_LABELS[opts.season]} — well-suited to the season.`
 }
 
@@ -182,7 +186,10 @@ export function buildScores(sel: ClothingItem[], opts: GenOptions) {
 
   const tf = OCC_FORMAL[opts.occ] ?? 3
   let os = 100
-  sel.forEach(p => { os -= Math.abs(tf - (ITEM_FORMAL[p.occasion] ?? 4)) * 5 })
+  sel.forEach(p => {
+    const best = Math.min(...p.occasion.split(',').map(o => Math.abs(tf - (ITEM_FORMAL[o] ?? 4))))
+    os -= best * 5
+  })
   os = Math.max(Math.min(os, 99), 40)
 
   const hasCover = sel.some(p => p.category === 'top' || p.category === 'dress')

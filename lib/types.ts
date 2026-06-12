@@ -19,8 +19,8 @@ export interface ClothingItem {
   name: string
   category: 'top' | 'bottom' | 'dress' | 'outerwear' | 'footwear' | 'accessory'
   color: string
-  season: 'all' | 'spring' | 'summer' | 'fall' | 'winter'
-  occasion: 'casual' | 'work' | 'formal' | 'gym' | 'any'
+  season: string
+  occasion: string
   styleTag: string
   image: string | null
   addedAt: string
