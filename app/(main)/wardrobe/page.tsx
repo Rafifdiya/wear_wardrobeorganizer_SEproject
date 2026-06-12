@@ -10,7 +10,7 @@ import { catIcon } from '@/lib/colors'
 import AddClothingModal from '@/components/wardrobe/add-clothing-modal'
 import OutfitDetailModal from '@/components/wardrobe/outfit-detail-modal'
 import { ClothingItem, Outfit } from '@/lib/types'
-import { getHistory, HistoryEntry, timeAgo } from '@/lib/history'
+import { getHistory, deleteFromHistory, getHistoryDuration, HistoryDuration, HistoryEntry, timeAgo } from '@/lib/history'
 
 type TabType = 'clothes' | 'outfits' | 'history'
 type FilterType = 'all' | ClothingItem['category']
@@ -47,6 +47,7 @@ export default function WardrobePage() {
   })
   const [filter, setFilter] = useState<FilterType>('all')
   const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [historyDuration, setHistoryDurationState] = useState<HistoryDuration>(7)
 
   useEffect(() => {
     const t = searchParams.get('tab')
@@ -54,7 +55,10 @@ export default function WardrobePage() {
   }, [searchParams])
 
   useEffect(() => {
-    if (tab === 'history') setHistory(getHistory())
+    if (tab === 'history') {
+      setHistory(getHistory())
+      setHistoryDurationState(getHistoryDuration())
+    }
   }, [tab])
   const [modalOpen, setModalOpen] = useState(false)
   const [editItem, setEditItem] = useState<ClothingItem | undefined>(undefined)
@@ -70,6 +74,12 @@ export default function WardrobePage() {
   function handleDeleteOutfit(id: number) {
     deleteOutfit(id)
     showToast('Outfit removed.')
+  }
+
+  function handleDeleteHistory(id: string) {
+    deleteFromHistory(id)
+    setHistory(prev => prev.filter(e => e.id !== id))
+    showToast('History entry removed.')
   }
 
   return (
@@ -113,7 +123,11 @@ export default function WardrobePage() {
             <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
               <div className="flex items-center gap-2 mb-5" style={{ color: 'var(--wear-muted)', fontSize: 13 }}>
                 <History size={14} />
-                <span>Recently generated outfits — last 7 days, up to 20 entries</span>
+                <span>
+                  {historyDuration === 0
+                    ? 'History saving is disabled — change this in Settings.'
+                    : `Recently generated outfits — last ${historyDuration} days, up to 20 entries`}
+                </span>
               </div>
               {history.length === 0 ? (
                 <EmptyState title="No history yet" desc="Generated outfits will appear here automatically." />
@@ -121,7 +135,7 @@ export default function WardrobePage() {
                 <motion.div variants={container} initial="hidden" animate="show" className="wear-outfit-grid">
                   {history.map(h => (
                     <motion.div key={h.id} variants={cardAnim} whileHover={{ y: -3, boxShadow: 'var(--shadow-lg)' }}
-                      className="rounded-2xl overflow-hidden border transition-all"
+                      className="rounded-2xl overflow-hidden border transition-all relative group"
                       style={{ background: 'var(--card-bg)', borderColor: 'var(--wear-border)' }}>
                       <div className="grid grid-cols-2 gap-2 p-3" style={{ background: 'var(--cream)' }}>
                         {h.pieces.slice(0, 4).map((p, i) => (
@@ -147,6 +161,13 @@ export default function WardrobePage() {
                           <Tag>{h.season}</Tag>
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--wear-muted)' }}>{timeAgo(h.generatedAt)}</div>
+                      </div>
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <motion.button whileHover={{ scale: 1.1 }} onClick={() => handleDeleteHistory(h.id)}
+                          className="flex items-center justify-center rounded-full cursor-pointer"
+                          style={{ width: 30, height: 30, background: 'var(--card-bg)', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,.15)' }}>
+                          <Trash2 size={13} style={{ color: 'var(--error)' }} />
+                        </motion.button>
                       </div>
                     </motion.div>
                   ))}

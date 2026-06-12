@@ -10,17 +10,34 @@ export interface HistoryEntry {
   generatedAt: string
 }
 
+export type HistoryDuration = 0 | 3 | 7
+
 const KEY = 'wear_outfit_history'
+const DURATION_KEY = 'wear_history_duration'
 const MAX = 20
-const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000
+
+export function getHistoryDuration(): HistoryDuration {
+  if (typeof window === 'undefined') return 7
+  const raw = localStorage.getItem(DURATION_KEY)
+  if (raw === '0') return 0
+  if (raw === '3') return 3
+  return 7
+}
+
+export function setHistoryDuration(days: HistoryDuration): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(DURATION_KEY, String(days))
+}
 
 export function getHistory(): HistoryEntry[] {
   if (typeof window === 'undefined') return []
   try {
+    const duration = getHistoryDuration()
+    if (duration === 0) return []
     const raw = localStorage.getItem(KEY)
     if (!raw) return []
     const entries: HistoryEntry[] = JSON.parse(raw)
-    const cutoff = Date.now() - MAX_AGE_MS
+    const cutoff = Date.now() - duration * 24 * 60 * 60 * 1000
     return entries.filter(e => new Date(e.generatedAt).getTime() > cutoff)
   } catch {
     return []
@@ -30,6 +47,7 @@ export function getHistory(): HistoryEntry[] {
 export function addToHistory(entry: Omit<HistoryEntry, 'id' | 'generatedAt'>): void {
   if (typeof window === 'undefined') return
   try {
+    if (getHistoryDuration() === 0) return
     const current = getHistory()
     const newEntry: HistoryEntry = {
       ...entry,
@@ -40,6 +58,18 @@ export function addToHistory(entry: Omit<HistoryEntry, 'id' | 'generatedAt'>): v
     localStorage.setItem(KEY, JSON.stringify(updated))
   } catch {
     // ignore storage errors
+  }
+}
+
+export function deleteFromHistory(id: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = localStorage.getItem(KEY)
+    if (!raw) return
+    const entries: HistoryEntry[] = JSON.parse(raw)
+    localStorage.setItem(KEY, JSON.stringify(entries.filter(e => e.id !== id)))
+  } catch {
+    // ignore
   }
 }
 
