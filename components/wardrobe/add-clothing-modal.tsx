@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Upload, Loader2, ChevronDown, Camera, Sparkles } from 'lucide-react'
+import { X, Upload, Loader2, ChevronDown, Camera, Sparkles, Check } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
 import { ClothingItem } from '@/lib/types'
@@ -33,22 +33,19 @@ const SEASONS = [
 ]
 
 const OCCASIONS = [
+  { value: 'any', label: 'Any Occasion' },
   { value: 'casual', label: 'Casual' }, { value: 'work', label: 'Work' },
-  { value: 'formal', label: 'Formal' }, { value: 'gym', label: 'Gym' }, { value: 'any', label: 'Any' },
+  { value: 'formal', label: 'Formal' }, { value: 'gym', label: 'Gym' },
 ]
 
 const STYLES = [
+  { value: 'all', label: 'All Styles' },
   { value: 'classic', label: 'Classic / Timeless' }, { value: 'casual', label: 'Casual / Relaxed' },
   { value: 'streetwear', label: 'Streetwear' }, { value: 'minimalist', label: 'Minimalist' },
   { value: 'formal', label: 'Formal / Smart' }, { value: 'bohemian', label: 'Bohemian' },
   { value: 'sporty', label: 'Sporty / Athletic' },
 ]
 
-const selStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 40px 12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12,
-  fontFamily: 'var(--font-sans)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--fg)',
-  outline: 'none', appearance: 'none', cursor: 'pointer',
-}
 
 interface Props {
   open: boolean
@@ -66,8 +63,8 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
   const [name, setName] = useState('')
   const [category, setCategory] = useState<ClothingItem['category']>('top')
   const [color, setColor] = useState('white')
-  const [season, setSeason] = useState<ClothingItem['season']>('all')
-  const [occasion, setOccasion] = useState<ClothingItem['occasion']>('casual')
+  const [season, setSeason] = useState('all')
+  const [occasion, setOccasion] = useState('any')
   const [styleTag, setStyleTag] = useState('classic')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -90,7 +87,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
 
   function reset() {
     setName(''); setCategory('top'); setColor('white'); setSeason('all')
-    setOccasion('casual'); setStyleTag('classic'); setImagePreview(null); setImageFile(null)
+    setOccasion('any'); setStyleTag('all'); setImagePreview(null); setImageFile(null)
     setAnalyzing(false)
     if (fileRef.current) fileRef.current.value = ''
     if (cameraRef.current) cameraRef.current.value = ''
@@ -278,27 +275,15 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Season">
-                <SelectWrap>
-                  <select value={season} onChange={e => setSeason(e.target.value as ClothingItem['season'])} style={selStyle}>
-                    {SEASONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </SelectWrap>
+                <MultiCheckDropdown options={SEASONS} value={season} onChange={setSeason} allValue="all" />
               </Field>
               <Field label="Occasion">
-                <SelectWrap>
-                  <select value={occasion} onChange={e => setOccasion(e.target.value as ClothingItem['occasion'])} style={selStyle}>
-                    {OCCASIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </SelectWrap>
+                <MultiCheckDropdown options={OCCASIONS} value={occasion} onChange={setOccasion} allValue="any" />
               </Field>
             </div>
 
             <Field label="Style Tag">
-              <SelectWrap>
-                <select value={styleTag} onChange={e => setStyleTag(e.target.value)} style={selStyle}>
-                  {STYLES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </SelectWrap>
+              <MultiCheckDropdown options={STYLES} value={styleTag} onChange={setStyleTag} allValue="all" />
             </Field>
 
             <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}
@@ -315,14 +300,113 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
   )
 }
 
+const selStyle: React.CSSProperties = {
+  width: '100%', padding: '12px 40px 12px 16px', border: '1.5px solid var(--wear-border)', borderRadius: 12,
+  fontFamily: 'var(--font-sans)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--fg)',
+  outline: 'none', appearance: 'none', cursor: 'pointer',
+}
+
 function SelectWrap({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ position: 'relative' }}>
       {children}
-      <ChevronDown size={16} style={{
-        position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
-        color: 'var(--wear-muted)', pointerEvents: 'none',
-      }} />
+      <ChevronDown size={16} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--wear-muted)', pointerEvents: 'none' }} />
+    </div>
+  )
+}
+
+function MultiCheckDropdown({
+  options, value, onChange, allValue,
+}: {
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (v: string) => void
+  allValue: string
+}) {
+  const [open, setOpen] = useState(false)
+  const selected = value ? value.split(',') : [allValue]
+  const isAll = selected.includes(allValue)
+
+  function toggle(optValue: string) {
+    if (optValue === allValue) { onChange(allValue); return }
+    let next = selected.filter(v => v !== allValue)
+    next = next.includes(optValue) ? next.filter(v => v !== optValue) : [...next, optValue]
+    onChange(next.length === 0 ? allValue : next.join(','))
+  }
+
+  const displayLabel = isAll
+    ? (options.find(o => o.value === allValue)?.label ?? allValue)
+    : options.filter(o => selected.includes(o.value)).map(o => o.label).join(', ')
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', padding: '12px 16px',
+          border: '1.5px solid var(--wear-border)',
+          borderRadius: open ? '12px 12px 0 0' : 12,
+          fontFamily: 'var(--font-sans)', fontSize: 14,
+          background: 'var(--input-bg)', color: 'var(--fg)',
+          outline: 'none', cursor: 'pointer', textAlign: 'left',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+          {displayLabel}
+        </span>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}
+          style={{ display: 'inline-flex', flexShrink: 0, color: 'var(--wear-muted)' }}>
+          <ChevronDown size={16} />
+        </motion.span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            style={{
+              overflow: 'hidden',
+              border: '1.5px solid var(--wear-border)', borderTop: 'none',
+              borderRadius: '0 0 12px 12px',
+              background: 'var(--card-bg)',
+            }}
+          >
+            {options.map(opt => {
+              const isChecked = selected.includes(opt.value)
+              return (
+                <div
+                  key={opt.value}
+                  onClick={() => toggle(opt.value)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '9px 14px',
+                    cursor: 'pointer',
+                    fontSize: 13, color: 'var(--fg)',
+                    transition: 'background 0.1s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(200,149,108,.07)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
+                >
+                  <div style={{
+                    width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                    border: `1.5px solid ${isChecked ? 'var(--warm)' : 'var(--wear-border)'}`,
+                    background: isChecked ? 'var(--warm)' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.12s',
+                  }}>
+                    {isChecked && <Check size={10} color="white" strokeWidth={3} />}
+                  </div>
+                  {opt.label}
+                </div>
+              )
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
