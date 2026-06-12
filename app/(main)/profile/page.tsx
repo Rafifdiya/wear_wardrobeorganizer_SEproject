@@ -2,12 +2,13 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, LogOut, Save, X, Eye, EyeOff, Trash2, Sun, Moon } from 'lucide-react'
+import { Camera, LogOut, Save, X, Eye, EyeOff, Trash2, Sun, Moon, History } from 'lucide-react'
 import { useWear } from '@/lib/store'
 import { useToast } from '@/components/shared/toast'
 import { useRouter } from 'next/navigation'
 import { Occasion, Season, StyleMood } from '@/lib/types'
 import { useTheme, FONT_THEME_OPTIONS } from '@/lib/theme'
+import { getHistoryDuration, setHistoryDuration, HistoryDuration } from '@/lib/history'
 
 const PREF_OCCASIONS: { value: Occasion; label: string }[] = [
   { value: 'casual', label: 'Casual' }, { value: 'work', label: 'Work' },
@@ -51,6 +52,14 @@ export default function ProfilePage() {
   const [prefOccasion, setPrefOccasion] = useState<Occasion>((user.prefOccasion as Occasion) ?? 'casual')
   const [prefSeason, setPrefSeason] = useState<Season>((user.prefSeason as Season) ?? 'all')
   const [prefMood, setPrefMood] = useState<StyleMood>((user.prefMood as StyleMood) ?? 'balanced')
+
+  const [historyDuration, setHistoryDurationState] = useState<HistoryDuration>(() => getHistoryDuration())
+
+  function handleSetHistoryDuration(days: HistoryDuration) {
+    setHistoryDuration(days)
+    setHistoryDurationState(days)
+    showToast('History settings saved!')
+  }
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
@@ -261,6 +270,33 @@ export default function ProfilePage() {
                 style={{ background: 'var(--warm)', border: 'none' }}>
                 <Save size={14} /> Save Preferences
               </motion.button>
+            </div>
+          </motion.div>
+
+          {/* History */}
+          <motion.div variants={fadeUp} className="p-7 border-b" style={{ borderColor: 'var(--wear-border)' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <History size={15} style={{ color: 'var(--warm)' }} />
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700 }}>History</h2>
+            </div>
+            <p style={{ color: 'var(--wear-muted)', fontSize: 13, marginBottom: 20 }}>Choose how long generated outfit history is kept.</p>
+            <div className="flex gap-3">
+              {([
+                { value: 3 as HistoryDuration, label: '3 Days' },
+                { value: 7 as HistoryDuration, label: '7 Days' },
+                { value: 0 as HistoryDuration, label: "Don't Save" },
+              ]).map(opt => (
+                <motion.button key={opt.value} whileTap={{ scale: 0.97 }}
+                  onClick={() => handleSetHistoryDuration(opt.value)}
+                  className="flex-1 cursor-pointer py-2.5 rounded-xl text-sm font-medium"
+                  style={{
+                    border: `1.5px solid ${historyDuration === opt.value ? 'var(--warm)' : 'var(--wear-border)'}`,
+                    background: historyDuration === opt.value ? 'rgba(200,149,108,.08)' : 'transparent',
+                    color: historyDuration === opt.value ? 'var(--warm)' : 'var(--fg)',
+                  }}>
+                  {opt.label}
+                </motion.button>
+              ))}
             </div>
           </motion.div>
 
