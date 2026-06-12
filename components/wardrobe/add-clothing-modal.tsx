@@ -82,6 +82,8 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
       setStyleTag(editItem.styleTag)
       setImagePreview(editItem.image)
       setImageFile(null)
+    } else {
+      reset()
     }
   }, [editItem])
 
@@ -107,11 +109,12 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
       // Auto-detect color and category via Gemini Vision
       setAnalyzing(true)
       try {
-        const base64 = dataUrl.split(',')[1]
+        // Compress & resize to JPEG before sending — PNG files can be too large
+        const { base64, mimeType: analyzeMime } = await compressForAnalysis(dataUrl)
         const res = await fetch('/api/items/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: base64, mimeType: file.type }),
+          body: JSON.stringify({ imageBase64: base64, mimeType: analyzeMime }),
         })
         if (res.ok) {
           const { color: detectedColor, category: detectedCategory } = await res.json()
@@ -239,7 +242,7 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
             )}
             <input ref={fileRef} type="file" accept="image/*" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) readFile(f) }} />
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+            <input ref={cameraRef} type="file" capture="environment" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) readFile(f) }} />
 
             <Field label="Item Name">
@@ -298,6 +301,27 @@ export default function AddClothingModal({ open, onClose, editItem }: Props) {
       )}
     </AnimatePresence>
   )
+}
+
+function compressForAnalysis(dataUrl: string): Promise<{ base64: string; mimeType: string }> {
+  return new Promise(resolve => {
+    const img = new Image()
+    img.onload = () => {
+      const MAX = 800
+      let { width, height } = img
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round(height * MAX / width); width = MAX }
+        else { width = Math.round(width * MAX / height); height = MAX }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      const compressed = canvas.toDataURL('image/jpeg', 0.85)
+      resolve({ base64: compressed.split(',')[1], mimeType: 'image/jpeg' })
+    }
+    img.src = dataUrl
+  })
 }
 
 const selStyle: React.CSSProperties = {
