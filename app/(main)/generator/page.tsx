@@ -208,7 +208,7 @@ export default function GeneratorPage() {
       {/* Responsive layout: controls left, result right on desktop; stacked on mobile */}
       <div className="wear-gen-layout">
         {/* Controls */}
-        <div style={{ position: 'sticky', top: 40 }}>
+        <div className="md:sticky md:top-10">
           <ControlCard title="Occasion">
             <ToggleGroup options={OCCASIONS} value={opts.occ} onChange={v => setOpt('occ', v as Occasion)} />
           </ControlCard>
