@@ -134,8 +134,15 @@ export default function GeneratorPage() {
     })
     if (pool.length < 2) pool = state.clothes
 
+    const availableCats = [...new Set(pool.map(c => c.category))].join(', ')
+    const hasDressInPool = pool.some(c => c.category === 'dress')
+    const coverRule = hasDressInPool
+      ? 'MUST include 1 top OR 1 dress (if dress, skip bottom)'
+      : 'MUST include exactly 1 top AND 1 bottom'
+
     const clothesList = pool.map(c => `- ${c.name} (${c.category}, ${c.color || 'unspecified color'}, ${c.occasion} occasion, ${c.season} season)`).join('\n')
-    const prompt = `You are a professional fashion stylist. The user's wardrobe:\n${clothesList}\n\nCreate ONE stylish outfit for: ${opts.occ} occasion, ${opts.season} season, ${opts.palette} color palette.${vibe ? `\nContext: "${vibe}"` : ''}\n\nRules:\n- Pick at most 1 item per category (e.g. only 1 footwear, only 1 top)\n- Choose 2-4 items total\n- Use exact item names from the list above\n\nRespond ONLY in this JSON (no markdown, no extra text):\n{"outfitName":"short creative name","pieces":["exact item name from list","..."],"styleReasoning":"2-3 sentences on why this combo works","stylingTip":"one practical tip"}`
+    const vibeRule = vibe ? `\n- User request (MUST follow as closely as possible): "${vibe}"` : ''
+    const prompt = `You are a professional fashion stylist. The user's wardrobe:\n${clothesList}\n\nAvailable categories in wardrobe: ${availableCats}\n\nCreate ONE stylish outfit for: ${opts.occ} occasion, ${opts.season} season, ${opts.palette} color palette.\n\nStrict rules:\n- ONLY use categories that exist in the wardrobe above — do NOT suggest items not in the list\n- ONLY 1 item per category — never 2 tops, never 2 bottoms, never 2 shoes\n- ${coverRule}\n- Choose 2-5 items total\n- Use EXACT item names from the list above${vibeRule}\n\nRespond ONLY in this JSON (no markdown, no extra text):\n{"outfitName":"short creative name","pieces":["exact item name from list","..."],"styleReasoning":"2-3 sentences on why this combo works","stylingTip":"one practical tip"}`
 
     try {
       const res = await fetch('/api/generate', {
@@ -147,21 +154,60 @@ export default function GeneratorPage() {
       const data = await res.json()
       const parsed = JSON.parse(data.text.replace(/```json|```/g, '').trim())
 
+      // Match AI names to real wardrobe items — exact first, then partial
       const usedIds = new Set<number>()
+      const matchItem = (name: string): ClothingItem | null => {
+        const n = name.toLowerCase().trim()
+        const avail = pool.filter(c => !usedIds.has(c.id))
+        // 1. Exact match
+        let found = avail.find(c => c.name.toLowerCase() === n)
+        // 2. All words in AI name appear in item name
+        if (!found) {
+          const words = n.split(' ').filter(w => w.length > 2)
+          found = avail.find(c => words.every(w => c.name.toLowerCase().includes(w)))
+        }
+        // 3. Item name fully contained in AI name or vice versa
+        if (!found) found = avail.find(c => n.includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(n))
+        // 4. First significant word match (fallback)
+        if (!found) {
+          const firstWord = n.split(' ').find(w => w.length > 3) ?? n.split(' ')[0]
+          found = avail.find(c => c.name.toLowerCase().includes(firstWord))
+        }
+        return found ?? null
+      }
       const matched = (parsed.pieces as string[]).map(name => {
-        const found = pool.find(c =>
-          !usedIds.has(c.id) && (
-            c.name.toLowerCase().includes(name.toLowerCase().split(' ')[0]) ||
-            name.toLowerCase().includes(c.name.toLowerCase().split(' ')[0])
-          )
-        )
+        const found = matchItem(name)
         if (found) usedIds.add(found.id)
-        return found ?? ({ name, category: 'top', color: '', season: 'all', occasion: 'casual', styleTag: 'classic', image: null, id: 0, addedAt: '' } as ClothingItem)
-      }).filter((item, idx, arr) => item.id === 0 || arr.findIndex(x => x.id === item.id) === idx)
+        return found
+      }).filter(Boolean) as ClothingItem[]
+
+      // Dedup by category — keep only first item per category
+      const usedCats = new Set<string>()
+      const deduped = matched.filter(item => {
+        if (usedCats.has(item.category)) return false
+        usedCats.add(item.category)
+        return true
+      })
+
+      // Guarantee minimum coverage: top/dress + bottom (unless dress present)
+      const hasCoverItem = deduped.some(i => i.category === 'top' || i.category === 'dress')
+      const hasDressItem = deduped.some(i => i.category === 'dress')
+      const hasBottomItem = deduped.some(i => i.category === 'bottom')
+
+      if (!hasCoverItem) {
+        const fb = pool.find(c => (c.category === 'top' || c.category === 'dress') && !usedIds.has(c.id))
+        if (fb) { deduped.unshift(fb); usedIds.add(fb.id); usedCats.add(fb.category) }
+      }
+      if (!hasDressItem && !hasBottomItem) {
+        const fb = pool.find(c => c.category === 'bottom' && !usedIds.has(c.id))
+        if (fb) { deduped.push(fb); usedIds.add(fb.id) }
+      }
+
+      const pieces = deduped.length >= 1 ? deduped : pool.slice(0, 2)
 
       incCounts('ai')
-      addToHistory({ name: parsed.outfitName, pieces: matched, occasion: opts.occ, season: opts.season, mode: 'ai' })
-      setResult({ name: parsed.outfitName, pieces: matched, mode: 'ai', reasoning: parsed.styleReasoning, stylingTip: parsed.stylingTip })
+      addToHistory({ name: parsed.outfitName, pieces, occasion: opts.occ, season: opts.season, mode: 'ai' })
+      setResult({ name: parsed.outfitName, pieces, mode: 'ai', reasoning: parsed.styleReasoning, stylingTip: parsed.stylingTip })
     } catch {
       showToast('AI unavailable — switching to Offline Mode.', 'error')
       setTimeout(() => { setMode('offline'); runOffline() }, 600)
